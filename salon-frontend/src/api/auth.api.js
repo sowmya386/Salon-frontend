@@ -1,12 +1,15 @@
-import axios from "axios";
+import api from "./axios";
 
-// Base URL of your backend
-const BASE_URL = "http://localhost:8081/api"; // Replace with your backend URL
+// Admin Auth
+export const adminLogin = (data) => api.post(`/auth/admin/login`, data);
+export const adminRegister = (data) => api.post(`/auth/admin/register`, data);
 
-export const adminLogin = (data) => {
-  return axios.post(`${BASE_URL}/auth/admin/login`, data, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-};
+// Customer Auth
+export const customerLogin = (data) => api.post(`/auth/customers/login`, data);
+export const customerRegister = (data) => api.post(`/auth/customers/register`, data);
+
+// Password recovery (placeholders)
+export const forgotPassword = (data) => api.post(`/auth/forgot-password`, data);
+export const resetPassword = (data) => api.post(`/auth/reset-password`, data);
+
+export const getApprovedSalons = () => api.get('/salons');
