@@ -54,7 +54,7 @@ const AdminDashboard = () => {
   // Try to parse values from your DashboardSummaryResponse. Using defaults if undefined.
   const totalRevenue = data.totalRevenue || 0;
   const bookingsToday = data.bookingsToday || 0;
-  const newCustomers = data.newCustomers ?? Math.max(0, (data.bookingsThisWeek || 0) - (data.bookingsToday || 0));
+  const newCustomers = data.newCustomers || 0;
 
   // Mock revenue chart data (since the summary might just return a strict number, 
   // you may need to map an array from your API here like data.weeklyRevenue)

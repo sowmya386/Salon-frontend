@@ -9,7 +9,7 @@ const RoleRoute = () => {
     if (role === "SUPER_ADMIN") return <Navigate to="/super-admin/dashboard" replace />;
     if (role === "ADMIN") return <Navigate to="/admin/dashboard" replace />;
     if (role === "STAFF") return <Navigate to="/staff/dashboard" replace />;
-    if (role === "CUSTOMER") return <Navigate to="/portal/profile" replace />;
+    if (role === "CUSTOMER") return <Navigate to="/portal/home" replace />;
   }
 
   // Not logged in -> render child (e.g. Login page)

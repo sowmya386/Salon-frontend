@@ -1,63 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { adminLogin, customerLogin, getApprovedSalons } from "../../api/auth.api";
+import { unifiedLogin } from "../../api/auth.api";
 import { setAuth } from "../../utils/auth";
-import { Mail, Lock, Loader2, UserCircle, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("CUSTOMER"); // 'CUSTOMER' or 'ADMIN'
-  const [formData, setFormData] = useState({ email: "", password: "", salonName: "John Salon" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [salons, setSalons] = useState([]);
 
-  useEffect(() => {
-    const fetchSalons = async () => {
-      try {
-        const res = await getApprovedSalons();
-        setSalons(res.data);
-      } catch (err) {
-        console.error("Failed to fetch salons", err);
-      }
-    };
-    fetchSalons();
-  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      if (activeTab === "ADMIN") {
-        const res = await adminLogin(formData);
-        const token = res.data?.token;
-        if (!token) throw new Error("Admin login did not return a token");
-        
-        // Parse token payload to check for SUPER_ADMIN role
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const isSuperAdmin = payload.roles && payload.roles.includes("ROLE_SUPER_ADMIN");
-          if (isSuperAdmin) {
-            setAuth(token, "SUPER_ADMIN");
-            navigate("/super-admin/dashboard");
-            return;
-          }
-        } catch (err) {
-          console.error("Token parse error", err);
+      const res = await unifiedLogin(formData);
+      const token = res.data?.token;
+      if (!token) throw new Error("Login did not return a token");
+      
+      try {
+        let base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) {
+          base64 += '=';
         }
-
-        setAuth(token, "ADMIN");
-        navigate("/admin/dashboard");
-        return;
+        const payload = JSON.parse(atob(base64));
+        const roles = payload.roles || [];
+        
+        if (roles.includes("ROLE_SUPER_ADMIN")) {
+          setAuth(token, "SUPER_ADMIN");
+          navigate("/super-admin/dashboard");
+        } else if (roles.includes("ROLE_ADMIN")) {
+          setAuth(token, "ADMIN");
+          navigate("/admin/dashboard");
+        } else {
+          setAuth(token, "CUSTOMER");
+          navigate("/portal");
+        }
+      } catch (err) {
+        console.error("Token parse error", err);
+        setAuth(token, "CUSTOMER");
+        navigate("/portal");
       }
 
-      const res = await customerLogin(formData);
-      const token = res.data?.token;
-      if (!token) throw new Error("Customer login did not return a token");
-      setAuth(token, "CUSTOMER");
-      navigate("/portal");
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Invalid credentials. Please try again.");
@@ -71,30 +58,26 @@ const Login = () => {
       <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
       <p className="text-sm text-gray-500 mt-2 mb-8">Enter your details to access your account.</p>
 
-      {/* Role Tabs */}
-      <div className="flex p-1 bg-gray-100/80 rounded-xl mb-8 border border-gray-200/60 p-1">
-        <button
-          onClick={() => { setActiveTab("CUSTOMER"); setError(""); }}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all",
-            activeTab === "CUSTOMER" ? "bg-white text-primary-600 shadow-sm ring-1 ring-gray-900/5" : "text-gray-500 hover:text-gray-900"
-          )}
-        >
-          <UserCircle className="w-4 h-4" /> Customer
-        </button>
-        <button
-          onClick={() => { setActiveTab("ADMIN"); setError(""); }}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all",
-            activeTab === "ADMIN" ? "bg-white text-secondary-600 shadow-sm ring-1 ring-gray-900/5" : "text-gray-500 hover:text-gray-900"
-          )}
-        >
-          <ShieldCheck className="w-4 h-4" /> Admin
-        </button>
+      <button 
+        type="button" 
+        onClick={() => { window.location.href = "http://localhost:8081/oauth2/authorization/google"; }}
+        className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 mb-6 shadow-sm"
+      >
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+        Continue with Google
+      </button>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-100">
+        <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-sm font-medium mb-6 border border-red-200 shadow-sm animate-pulse">
           {error}
         </div>
       )}
@@ -133,23 +116,7 @@ const Login = () => {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Salon Name</label>
-          <input 
-            required
-            list="approved-salons"
-            type="text" 
-            value={formData.salonName}
-            onChange={(e) => setFormData({...formData, salonName: e.target.value})}
-            placeholder="John Salon"
-            className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
-          />
-          <datalist id="approved-salons">
-            {salons.map(s => (
-              <option key={s.id} value={s.name} />
-            ))}
-          </datalist>
-        </div>
+
 
         <button 
           type="submit" 

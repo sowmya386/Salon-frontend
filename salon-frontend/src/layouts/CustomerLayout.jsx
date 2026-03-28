@@ -3,6 +3,7 @@ import { Scissors, Menu, X, Instagram, Facebook, Twitter, LogOut, User as UserIc
 import { getToken, getRole, clearAuth } from "../utils/auth";
 import { cn } from "../lib/utils";
 import { useState } from "react";
+import BotWidget from "../components/BotWidget";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
@@ -155,11 +156,14 @@ const CustomerLayout = () => {
                <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 hover:-translate-y-1 transition-all"><Twitter className="w-4 h-4 text-white"/></a>
             </div>
           </div>
-        </div>
+       </div>
         <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-gray-800 text-sm text-center text-gray-500">
            &copy; {new Date().getFullYear()} John Salon. All rights reserved. Built with ❤️.
         </div>
       </footer>
+      
+      {/* AI Bot for Customers */}
+      <BotWidget />
     </div>
   );
 };

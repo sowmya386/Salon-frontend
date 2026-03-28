@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { MessageSquare, X, Send, Loader2, Bot, User, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -32,6 +33,60 @@ const BotWidget = () => {
     try {
       // Local fallback logic for SaaS feature plans if requested
       const lowerQuery = userQuery.toLowerCase();
+      
+      const isGreeting = ["hi", "hello", "hey", "hii"].some(w => lowerQuery.includes(w));
+      const wantsServices = lowerQuery.includes("service");
+      const wantsProducts = lowerQuery.includes("product") || lowerQuery.includes("retail");
+      const wantsProfile = lowerQuery.includes("profile") || lowerQuery.includes("account");
+
+      if (isGreeting && !lowerQuery.includes("plan") && !wantsServices && !wantsProducts) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { role: "bot", content: "Hello! I am Hyve AI. How can I help you today? I can assist you with your bookings, profile, or tell you about our premium services and products." }]);
+          setLoading(false);
+        }, 1000);
+        return;
+      }
+
+      if (wantsServices) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { 
+            role: "bot", 
+            content: (
+              <span>
+                You can view and book all our premium services directly:<br/><br/>
+                <Link onClick={() => setIsOpen(false)} to="/services" className="px-3 py-1.5 bg-primary-100 text-primary-700 rounded-lg inline-block font-bold no-underline hover:bg-primary-200 transition-colors">View Services</Link>
+              </span>
+            )
+          }]);
+          setLoading(false);
+        }, 1000);
+        return;
+      }
+
+      if (wantsProducts) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { 
+            role: "bot", 
+            content: (
+              <span>
+                We offer top-notch retail products to maintain your look. Check them out:<br/><br/>
+                <Link onClick={() => setIsOpen(false)} to="/products" className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg inline-block font-bold no-underline hover:bg-gray-200 transition-colors">Shop Products</Link>
+              </span>
+            )
+          }]);
+          setLoading(false);
+        }, 1000);
+        return;
+      }
+
+      if (wantsProfile) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { role: "bot", content: "You can manage your account details, view loyalty points, and update preferences directly on your 'Profile' page." }]);
+          setLoading(false);
+        }, 1000);
+        return;
+      }
+
       if (lowerQuery.includes("plan") || lowerQuery.includes("feature") || lowerQuery.includes("pricing") || lowerQuery.includes("pro")) {
         setTimeout(() => {
           setMessages(prev => [...prev, { 
@@ -61,16 +116,23 @@ const BotWidget = () => {
 
   return (
     <>
-      {/* Floating Button */}
-      <button
-        onClick={() => setIsOpen(true)}
+      {/* Floating Button Container */}
+      <div 
         className={cn(
-          "fixed bottom-8 right-8 w-14 h-14 premium-gradient text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(200,155,75,0.4)] hover:scale-110 transition-all duration-300 z-50",
-          isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
+          "fixed bottom-8 right-8 z-50 transition-all duration-300 flex items-center gap-3",
+          isOpen ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"
         )}
       >
-        <Sparkles className="w-6 h-6 animate-pulse text-white" />
-      </button>
+        <div className="bg-white px-4 py-2 rounded-2xl rounded-br-sm shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 animate-bounce">
+          <p className="text-sm font-semibold text-gray-800">Hi! Chat with Hyve AI ✨</p>
+        </div>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-14 h-14 premium-gradient text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(200,155,75,0.4)] hover:scale-110 transition-all duration-300 shrink-0"
+        >
+          <Sparkles className="w-6 h-6 animate-pulse text-white" />
+        </button>
+      </div>
 
       {/* Chat Window */}
       <div 

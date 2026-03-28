@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getInvoices } from "../api/billing.api";
 import { Plus, Search, Receipt, Loader2, IndianRupee, Printer, Download, CheckCircle2, Clock } from "lucide-react";
+import { downloadInvoicePdf } from "../utils/pdfGenerator";
 
 const BillingList = () => {
   const [invoices, setInvoices] = useState([]);
@@ -155,7 +156,7 @@ const BillingList = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-transparent hover:border-primary-200" title="Download PDF">
+                          <button onClick={() => downloadInvoicePdf(inv)} className="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-transparent hover:border-primary-200" title="Download PDF">
                             <Download className="w-4 h-4" />
                           </button>
                           <button className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200" title="Print">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getServices, createService, deleteService } from "../api/services.api";
+import { getServices, createService, deleteService, updateService } from "../api/services.api";
 import { Plus, Search, Scissors, Pencil, Trash2, Loader2, X } from "lucide-react";
 
 // Modal Component defined right here for simplicity
@@ -77,10 +77,98 @@ const AddServiceModal = ({ isOpen, onClose, onRefresh }) => {
   );
 };
 
+const EditServiceModal = ({ isOpen, onClose, onRefresh, service }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "HAIR",
+    price: "",
+    durationMinutes: "30",
+    description: ""
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (service) {
+      setFormData({
+        name: service.name || service.serviceName || "",
+        category: service.category || "HAIR",
+        price: service.price || "",
+        durationMinutes: service.durationInMinutes || service.durationMinutes || service.duration || "30",
+        description: service.description || ""
+      });
+    }
+  }, [service]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await updateService(service.id, {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        durationInMinutes: parseInt(formData.durationMinutes, 10),
+      });
+      onRefresh();
+      onClose();
+    } catch (err) {
+      console.error("Failed to edit service", err);
+      alert("Failed to edit service. Check console.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in-95 duration-200">
+        <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
+          <X className="w-5 h-5"/>
+        </button>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Edit Service</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+            <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="e.g. Bridal Makeup" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none">
+                <option value="HAIR">Hair</option>
+                <option value="MAKEUP">Makeup</option>
+                <option value="NAILS">Nails</option>
+                <option value="SPA">Spa</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Duration (mins)</label>
+              <input required type="number" min="15" step="15" value={formData.durationMinutes} onChange={e => setFormData({...formData, durationMinutes: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+            <input required type="number" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="e.g. 1500" />
+          </div>
+          <div className="pt-4 flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+            <button type="submit" disabled={loading} className="flex-1 bg-primary-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-700 transition-colors flex items-center justify-center">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+
 const ServicesList = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
 
@@ -217,7 +305,7 @@ const ServicesList = () => {
                     <td className="px-6 py-4">{service.durationInMinutes || service.durationMinutes || service.duration} mins</td>
                     <td className="px-6 py-4 font-medium text-gray-900">₹{service.price}</td>
                     <td className="px-6 py-4 text-right space-x-2">
-                       <button className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                       <button onClick={() => setEditingService(service)} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                          <Pencil className="w-4 h-4" />
                        </button>
                        <button onClick={() => handleDelete(service.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -235,6 +323,13 @@ const ServicesList = () => {
       <AddServiceModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        onRefresh={fetchServices}
+      />
+
+      <EditServiceModal 
+        isOpen={!!editingService} 
+        service={editingService}
+        onClose={() => setEditingService(null)} 
         onRefresh={fetchServices}
       />
     </div>

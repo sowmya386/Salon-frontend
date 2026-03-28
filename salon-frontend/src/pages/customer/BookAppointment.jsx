@@ -52,6 +52,11 @@ const BookAppointment = () => {
         appointmentTime,
       };
 
+      if (['Card', 'PhonePe', 'Google Pay'].includes(formData.paymentMethod)) {
+         // simulate payment gateway redirect delay
+         await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
       await api.post("/customers/bookings", payload);
       setSuccess(true);
       setTimeout(() => navigate("/portal/profile"), 3000);
@@ -158,8 +163,54 @@ const BookAppointment = () => {
             </div>
           )}
 
+          {/* Home Service & Address */}
+          <div className="space-y-4 pt-2">
+             <label className="flex items-center gap-3 cursor-pointer">
+               <input 
+                 type="checkbox" 
+                 checked={formData.isHomeService || false}
+                 onChange={(e) => setFormData({...formData, isHomeService: e.target.checked})}
+                 className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+               />
+               <span className="font-bold text-gray-900">Request as Home Service (e.g. Bridal Makeup)</span>
+             </label>
+             {formData.isHomeService && (
+                <div className="animate-in slide-in-from-top-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Service Address</label>
+                  <textarea
+                    required
+                    placeholder="Enter full address for the home service..."
+                    value={formData.homeAddress || ""}
+                    onChange={(e) => setFormData({...formData, homeAddress: e.target.value})}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all shadow-sm"
+                    rows={2}
+                  />
+                </div>
+             )}
+          </div>
+
+          {/* Payment Options */}
+          <div className="space-y-4 pt-2">
+            <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">4. Payment Method</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+               {['Pay at Salon', 'Card', 'PhonePe', 'Google Pay'].map((method) => (
+                  <label key={method} className={`border ${formData.paymentMethod === method ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500 ring-opacity-50' : 'border-gray-200 bg-white hover:bg-gray-50'} rounded-xl px-4 py-3 flex items-center justify-center cursor-pointer transition-all`}>
+                     <input 
+                       type="radio" 
+                       name="paymentMethod" 
+                       value={method}
+                       checked={formData.paymentMethod === method || (!formData.paymentMethod && method === 'Pay at Salon')}
+                       onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                       className="sr-only"
+                     />
+                     <span className={`font-bold text-sm ${formData.paymentMethod === method ? 'text-primary-700' : 'text-gray-700'}`}>{method}</span>
+                  </label>
+               ))}
+            </div>
+          </div>
+
           {/* Submit */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6">
              <button 
                type="button" 
                onClick={() => navigate(-1)}
@@ -169,10 +220,10 @@ const BookAppointment = () => {
              </button>
              <button 
                type="submit" 
-               disabled={submitting || !formData.serviceId || !formData.bookingDate}
+               disabled={submitting || !formData.serviceId || !formData.bookingDate || (formData.isHomeService && !formData.homeAddress)}
                className="w-full sm:w-2/3 bg-gray-900 text-white rounded-xl py-4 font-bold text-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 transition-colors shadow-xl shadow-gray-900/20 flex items-center justify-center gap-2"
              >
-               {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm & Pay Later"}
+               {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Payment & Book"}
              </button>
           </div>
         </form>

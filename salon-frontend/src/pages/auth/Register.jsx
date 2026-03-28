@@ -69,7 +69,7 @@ const Register = () => {
       <p className="text-sm text-gray-500 mt-2 mb-8">Join us to experience premium salon services.</p>
 
       {/* Role Tabs */}
-      <div className="flex p-1 bg-gray-100/80 rounded-xl mb-8 border border-gray-200/60 p-1">
+      <div className="flex p-1 bg-gray-100/80 rounded-xl mb-8 border border-gray-200/60">
         <button
           type="button"
           onClick={() => { setActiveTab("CUSTOMER"); setError(""); }}
@@ -78,7 +78,7 @@ const Register = () => {
             activeTab === "CUSTOMER" ? "bg-white text-primary-600 shadow-sm ring-1 ring-gray-900/5" : "text-gray-500 hover:text-gray-900"
           )}
         >
-          <UserCircle className="w-4 h-4" /> I'm a Customer
+          <UserCircle className="w-5 h-5" /> Customer Sign Up
         </button>
         <button
           type="button"
@@ -88,7 +88,7 @@ const Register = () => {
             activeTab === "ADMIN" ? "bg-white text-secondary-600 shadow-sm ring-1 ring-gray-900/5" : "text-gray-500 hover:text-gray-900"
           )}
         >
-          <ShieldCheck className="w-4 h-4" /> Salon Admin
+          <ShieldCheck className="w-5 h-5" /> Register New Salon
         </button>
       </div>
 
@@ -97,6 +97,24 @@ const Register = () => {
           {error}
         </div>
       )}
+
+      <button 
+        type="button" 
+        onClick={() => { window.location.href = "http://localhost:8081/oauth2/authorization/google"; }}
+        className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 mb-6 shadow-sm"
+      >
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+        Continue with Google
+      </button>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
@@ -160,23 +178,20 @@ const Register = () => {
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Salon Name</label>
-          <input 
-            required
-            list="approved-salons"
-            type="text" 
-            value={formData.salonName}
-            onChange={(e) => setFormData({...formData, salonName: e.target.value})}
-            placeholder="John Salon"
-            className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
-          />
-          <datalist id="approved-salons">
-            {salons.map(s => (
-              <option key={s.id} value={s.name} />
-            ))}
-          </datalist>
-        </div>
+        {activeTab === "ADMIN" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">New Salon Name</label>
+            <input 
+              required
+              type="text" 
+              value={formData.salonName}
+              onChange={(e) => setFormData({...formData, salonName: e.target.value})}
+              placeholder="E.g. The Glamour Studio"
+              className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
+            />
+            <p className="text-xs text-gray-500 mt-2">This will register your unique salon workspace.</p>
+          </div>
+        )}
 
         <button 
           type="submit" 

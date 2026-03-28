@@ -1,10 +1,78 @@
 import { useState, useEffect } from "react";
-import { getCustomers } from "../api/people.api";
-import { Search, Users, UserPlus, Loader2, Star, Mail, Phone, Calendar } from "lucide-react";
+import { getCustomers, createCustomer } from "../api/people.api";
+import { Search, Users, UserPlus, Loader2, Star, Mail, Phone, Calendar, X } from "lucide-react";
+
+const AddCustomerModal = ({ isOpen, onClose, onRefresh }) => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: ""
+  });
+  const [loading, setLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await createCustomer({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password
+      });
+      onRefresh();
+      onClose();
+    } catch (err) {
+      console.error("Failed to create customer", err);
+      alert("Failed to create customer.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in-95 duration-200">
+        <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors">
+          <X className="w-5 h-5"/>
+        </button>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Add New Customer</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="e.g. Jane Doe" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="janedoe@example.com" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <input required type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="+1234567890" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Temporary Password</label>
+            <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="Secret123!" />
+          </div>
+          <div className="pt-4 flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+            <button type="submit" disabled={loading} className="flex-1 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all flex items-center justify-center">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Customer"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const CustomersList = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchCustomers = async () => {
@@ -36,7 +104,7 @@ const CustomersList = () => {
   }, []);
 
   const filteredCustomers = customers.filter(c => {
-    const match = (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const match = ((c.fullName || c.name) || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
                   (c.email || "").toLowerCase().includes(searchTerm.toLowerCase());
     return match;
   });
@@ -54,7 +122,7 @@ const CustomersList = () => {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Client Directory</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your customer relationships and history.</p>
         </div>
-        <button className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all flex items-center gap-2">
+        <button onClick={() => setIsAddOpen(true)} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all flex items-center gap-2">
           <UserPlus className="w-4 h-4" />
           Add Customer
         </button>
@@ -91,10 +159,10 @@ const CustomersList = () => {
               
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-50 to-secondary-50 border border-primary-100 flex items-center justify-center text-lg font-bold text-primary-700">
-                  {cust.name ? cust.name.charAt(0).toUpperCase() : "C"}
+                  {(cust.fullName || cust.name) ? (cust.fullName || cust.name).charAt(0).toUpperCase() : "C"}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{cust.name}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{cust.fullName || cust.name}</h3>
                   <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
                     <Mail className="w-3.5 h-3.5" /> {cust.email || "No email"}
                   </div>
@@ -119,6 +187,12 @@ const CustomersList = () => {
           ))
         )}
       </div>
+
+      <AddCustomerModal 
+        isOpen={isAddOpen} 
+        onClose={() => setIsAddOpen(false)} 
+        onRefresh={fetchCustomers}
+      />
     </div>
   );
 };

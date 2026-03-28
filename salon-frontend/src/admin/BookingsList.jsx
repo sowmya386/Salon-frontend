@@ -43,8 +43,9 @@ const BookingsList = () => {
     try {
       if (newStatus === "COMPLETED") await completeBooking(bookingId);
       if (newStatus === "CANCELLED") {
-        if(!window.confirm("Cancel this appointment?")) return;
-        await cancelBooking(bookingId);
+        const reason = window.prompt("Reason for cancellation:");
+        if (reason === null) return; // user backed out
+        await cancelBooking(bookingId, { message: reason });
       }
       
       // Optimistic update for UI feedback

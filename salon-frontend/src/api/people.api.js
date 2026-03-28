@@ -23,3 +23,19 @@ export const getStaff = (params) => {
     return { data: [] };
   });
 };
+
+export const createStaff = (data) => {
+  return api.post("/admin/staff", data);
+};
+
+export const updateStaff = (id, data) => {
+  return api.put(`/admin/staff/${id}`, data);
+};
+
+export const toggleStaffActive = (id) => {
+  return api.put(`/admin/staff/${id}/toggle`);
+};
+
+export const deleteStaff = (id) => {
+  return api.delete(`/admin/staff/${id}`);
+};

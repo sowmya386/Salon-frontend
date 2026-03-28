@@ -1,6 +1,7 @@
 import api from "./axios";
 
 // Admin Auth
+export const unifiedLogin = (data) => api.post(`/auth/login`, data);
 export const adminLogin = (data) => api.post(`/auth/admin/login`, data);
 export const adminRegister = (data) => api.post(`/auth/admin/register`, data);
 

@@ -25,14 +25,14 @@ const SuperAdminDashboard = () => {
     fetchSalons();
   }, []);
 
-  const handleAction = async (id, action) => {
+  const handleAction = async (id, name, action) => {
     try {
       setActionLoading(id);
       if (action === 'approve') {
-        await approveSalon(id);
+        await approveSalon(name);
         setMessage("Salon approved successfully! They can now log in.");
       } else {
-        await rejectSalon(id);
+        await rejectSalon(name);
         setMessage("Salon registration rejected.");
       }
       // Remove from list
@@ -95,7 +95,7 @@ const SuperAdminDashboard = () => {
               
               <div className="flex gap-3">
                 <button
-                  onClick={() => handleAction(salon.id, 'approve')}
+                  onClick={() => handleAction(salon.id, salon.name, 'approve')}
                   disabled={actionLoading === salon.id}
                   className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 py-2.5 rounded-xl text-sm font-bold border border-green-200 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 >
@@ -103,7 +103,7 @@ const SuperAdminDashboard = () => {
                   Approve
                 </button>
                 <button
-                  onClick={() => handleAction(salon.id, 'reject')}
+                  onClick={() => handleAction(salon.id, salon.name, 'reject')}
                   disabled={actionLoading === salon.id}
                   className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 py-2.5 rounded-xl text-sm font-bold border border-red-200 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 >

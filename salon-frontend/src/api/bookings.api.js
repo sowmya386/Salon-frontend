@@ -12,6 +12,6 @@ export const completeBooking = (bookingId) => {
   return api.put(`/admin/bookings/${bookingId}/complete`);
 };
 
-export const cancelBooking = (bookingId) => {
-  return api.put(`/admin/bookings/${bookingId}/cancel`);
+export const cancelBooking = (bookingId, payload) => {
+  return api.put(`/admin/bookings/${bookingId}/cancel`, payload);
 };
