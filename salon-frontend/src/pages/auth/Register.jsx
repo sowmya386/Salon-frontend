@@ -99,6 +99,7 @@ const Register = () => {
         </div>
       )}
 
+      {/*
       <button 
         type="button" 
         onClick={() => { window.location.href = BASE_URL.replace('/api', '/oauth2/authorization/google'); }}
@@ -107,6 +108,7 @@ const Register = () => {
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
         Continue with Google
       </button>
+      */}
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">

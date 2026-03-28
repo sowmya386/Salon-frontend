@@ -59,6 +59,7 @@ const Login = () => {
       <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
       <p className="text-sm text-gray-500 mt-2 mb-8">Enter your details to access your account.</p>
 
+      {/*
       <button 
         type="button" 
         onClick={() => { window.location.href = BASE_URL.replace('/api', '/oauth2/authorization/google'); }}
@@ -67,6 +68,7 @@ const Login = () => {
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
         Continue with Google
       </button>
+      */}
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
