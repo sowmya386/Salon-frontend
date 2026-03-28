@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { adminRegister, customerRegister, getApprovedSalons } from "../../api/auth.api";
 import { BASE_URL } from "../../api/axios";
+import { supabase } from "../../utils/supabase";
 import { User, Mail, Lock, Loader2, UserCircle, ShieldCheck } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -64,6 +65,27 @@ const Register = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      // Save metadata to localStorage so OAuthCallback can pick it up
+      localStorage.setItem("oauth_salonName", formData.salonName);
+      localStorage.setItem("oauth_role", activeTab === "ADMIN" ? "ROLE_ADMIN" : "ROLE_CUSTOMER");
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/oauth-callback`
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      console.error(err);
+      setError("Failed to initialize Google Login.");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full">
       <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Create an account</h2>
@@ -99,16 +121,15 @@ const Register = () => {
         </div>
       )}
 
-      {/*
       <button 
         type="button" 
-        onClick={() => { window.location.href = BASE_URL.replace('/api', '/oauth2/authorization/google'); }}
-        className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 mb-6 shadow-sm"
+        onClick={handleGoogleLogin}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 mb-6 shadow-sm disabled:opacity-50"
       >
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
         Continue with Google
       </button>
-      */}
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">

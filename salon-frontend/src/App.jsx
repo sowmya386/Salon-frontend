@@ -23,6 +23,7 @@ import PublicProducts from "./pages/customer/Products";
 import Profile from "./pages/customer/Profile";
 import BookAppointment from "./pages/customer/BookAppointment";
 import SuperAdminDashboard from "./admin/SuperAdminDashboard";
+import OAuthCallback from "./pages/auth/OAuthCallback";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/oauth-callback" element={<OAuthCallback />} />
           </Route>
         </Route>
 
