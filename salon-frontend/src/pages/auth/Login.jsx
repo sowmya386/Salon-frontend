@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { unifiedLogin } from "../../api/auth.api";
+import { BASE_URL } from "../../api/axios";
 import { setAuth } from "../../utils/auth";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -60,7 +61,7 @@ const Login = () => {
 
       <button 
         type="button" 
-        onClick={() => { window.location.href = "http://localhost:8081/oauth2/authorization/google"; }}
+        onClick={() => { window.location.href = BASE_URL.replace('/api', '/oauth2/authorization/google'); }}
         className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 mb-6 shadow-sm"
       >
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
