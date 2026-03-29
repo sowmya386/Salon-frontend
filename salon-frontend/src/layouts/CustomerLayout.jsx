@@ -158,7 +158,7 @@ const CustomerLayout = () => {
           </div>
        </div>
         <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-gray-800 text-sm text-center text-gray-500">
-           &copy; {new Date().getFullYear()} John Salon. All rights reserved. Built with ❤️.
+           &copy; {new Date().getFullYear()} Hyve Salon. All rights reserved. Built with ❤️.
         </div>
       </footer>
       
