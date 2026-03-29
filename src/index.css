@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-primary-50: #fbf8f3;
+  --color-primary-100: #f5eedf;
+  --color-primary-200: #ecdfc0;
+  --color-primary-300: #e0ca9a;
+  --color-primary-400: #d3b16d;
+  --color-primary-500: #c89b4b; /* Gold */
+  --color-primary-600: #b07f3c;
+  --color-primary-700: #936334;
+  --color-primary-800: #7a502f;
+  --color-primary-900: #64432a;
+  
+  --color-secondary-500: #1a1a1a;
+  --color-secondary-600: #111111;
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Outfit', system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: #fafafa;
+    --foreground: #09090b;
+    --card: #ffffff;
+    --card-foreground: #09090b;
+    --popover: #ffffff;
+    --popover-foreground: #09090b;
+    --border: #e4e4e7;
+    --input: #e4e4e7;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-2xl: 2rem;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+  }
+  .glass-dark {
+    @apply bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+  }
+  .premium-gradient {
+    @apply bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400;
+  }
+  .premium-text-gradient {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400;
+  }
+}
