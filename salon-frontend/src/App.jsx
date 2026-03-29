@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Layouts
 import AdminLayout from "./layouts/AdminLayout";
@@ -30,7 +31,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public / Customer Routes */}
-        <Route element={<CustomerLayout />}>
+        <Route element={<ErrorBoundary><CustomerLayout /></ErrorBoundary>}>
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<PublicServices />} />
           <Route path="/products" element={<PublicProducts />} />
@@ -38,7 +39,7 @@ function App() {
 
         {/* Customer Protected routes */}
         <Route path="/portal" element={<ProtectedRoute role="CUSTOMER" />}>
-          <Route element={<CustomerLayout />}>
+          <Route element={<ErrorBoundary><CustomerLayout /></ErrorBoundary>}>
             <Route index element={<Navigate to="profile" replace />} />
             <Route path="profile" element={<Profile />} />
             <Route path="book" element={<BookAppointment />} />
@@ -59,7 +60,9 @@ function App() {
           path="/admin"
           element={
             <ProtectedRoute role="ADMIN">
-              <AdminLayout />
+              <ErrorBoundary>
+                <AdminLayout />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         >
@@ -78,7 +81,9 @@ function App() {
           path="/super-admin"
           element={
             <ProtectedRoute role="SUPER_ADMIN">
-              <AdminLayout isSuperAdmin={true} />
+              <ErrorBoundary>
+                <AdminLayout isSuperAdmin={true} />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         >

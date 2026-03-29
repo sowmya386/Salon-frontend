@@ -15,7 +15,8 @@ const BookAppointment = () => {
   const [formData, setFormData] = useState({
     serviceId: preSelectedServiceId || "",
     bookingDate: "",
-    bookingTime: "10:00"
+    bookingTime: "10:00",
+    paymentMethod: ""
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -50,6 +51,8 @@ const BookAppointment = () => {
       const payload = {
         serviceId: Number(formData.serviceId),
         appointmentTime,
+        paymentMethod: formData.paymentMethod,
+        address: formData.isHomeService ? formData.homeAddress : null
       };
 
       if (['Card', 'PhonePe', 'Google Pay'].includes(formData.paymentMethod)) {
@@ -199,7 +202,7 @@ const BookAppointment = () => {
                        type="radio" 
                        name="paymentMethod" 
                        value={method}
-                       checked={formData.paymentMethod === method || (!formData.paymentMethod && method === 'Pay at Salon')}
+                       checked={formData.paymentMethod === method}
                        onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
                        className="sr-only"
                      />
@@ -220,7 +223,7 @@ const BookAppointment = () => {
              </button>
              <button 
                type="submit" 
-               disabled={submitting || !formData.serviceId || !formData.bookingDate || (formData.isHomeService && !formData.homeAddress)}
+               disabled={submitting || !formData.serviceId || !formData.bookingDate || !formData.paymentMethod || (formData.isHomeService && !formData.homeAddress)}
                className="w-full sm:w-2/3 bg-gray-900 text-white rounded-xl py-4 font-bold text-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 transition-colors shadow-xl shadow-gray-900/20 flex items-center justify-center gap-2"
              >
                {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Payment & Book"}

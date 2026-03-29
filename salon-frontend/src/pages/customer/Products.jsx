@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getProducts } from "../../api/products.api";
 import { Loader2, Search, ShoppingBag, ArrowRight, CheckCircle2, ShoppingCart, X, Plus, Minus, MapPin, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
+import api from "../../api/axios";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -17,6 +18,33 @@ const Products = () => {
     address: "",
     paymentMethod: "PhonePe"
   });
+  const [processing, setProcessing] = useState(false);
+
+  const handlePlaceOrder = async () => {
+    try {
+      setProcessing(true);
+      if (['Card', 'PhonePe', 'Google Pay'].includes(checkoutData.paymentMethod)) {
+         await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      const payload = {
+        address: checkoutData.address,
+        paymentMethod: checkoutData.paymentMethod,
+        items: cart.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        }))
+      };
+
+      await api.post("/customers/checkout/products", payload);
+      setCheckoutStep(3); // success view
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to place order.");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -124,12 +152,13 @@ const Products = () => {
                      </div>
                      <button 
                         onClick={() => {
-                          const existing = cart.find(c => c.id === product.id);
-                          if(existing) {
-                            setCart(cart.map(c => c.id === product.id ? {...c, quantity: c.quantity + 1} : c));
-                          } else {
-                            setCart([...cart, { ...product, quantity: 1 }]);
-                          }
+                          setCart(prev => {
+                            const existing = prev.find(c => c.id === product.id);
+                            if(existing) {
+                              return prev.map(c => c.id === product.id ? {...c, quantity: c.quantity + 1} : c);
+                            }
+                            return [...prev, { ...product, quantity: 1 }];
+                          });
                           setIsCartOpen(true);
                           setCheckoutStep(0);
                         }}
@@ -147,7 +176,7 @@ const Products = () => {
 
       {/* Slide-out Cart & Checkout Drawer */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[60] flex justify-end">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
           <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white">
@@ -179,12 +208,11 @@ const Products = () => {
                            <p className="text-primary-600 font-extrabold text-sm mb-2">₹{item.price}</p>
                            <div className="flex items-center gap-3">
                              <button onClick={() => {
-                               const newCart = cart.map(c => c.id === item.id ? {...c, quantity: Math.max(0, c.quantity - 1)} : c).filter(c => c.quantity > 0);
-                               setCart(newCart);
+                               setCart(prev => prev.map(c => c.id === item.id ? {...c, quantity: Math.max(0, c.quantity - 1)} : c).filter(c => c.quantity > 0));
                              }} className="w-6 h-6 bg-gray-100 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-200">-</button>
                              <span className="font-bold text-sm">{item.quantity}</span>
                              <button onClick={() => {
-                               setCart(cart.map(c => c.id === item.id ? {...c, quantity: c.quantity + 1} : c));
+                               setCart(prev => prev.map(c => c.id === item.id ? {...c, quantity: c.quantity + 1} : c));
                              }} className="w-6 h-6 bg-gray-100 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-200">+</button>
                            </div>
                          </div>
@@ -269,14 +297,14 @@ const Products = () => {
                     <button onClick={() => setCheckoutStep(checkoutStep - 1)} className="w-1/3 py-4 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">Back</button>
                   )}
                   <button 
-                    disabled={checkoutStep === 1 && !checkoutData.address.trim()}
                     onClick={() => {
                       if(checkoutStep < 2) setCheckoutStep(checkoutStep + 1);
-                      else setCheckoutStep(3); // process order
+                      else handlePlaceOrder(); 
                     }} 
-                    className={`flex-1 py-4 rounded-xl font-bold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/20 disabled:bg-gray-300 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2`}
+                    disabled={processing || (checkoutStep === 1 && !checkoutData.address.trim())}
+                    className={`flex-1 py-4 rounded-xl font-bold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/20 disabled:bg-gray-300 disabled:opacity-50 flex items-center justify-center gap-2`}
                   >
-                    {checkoutStep === 0 ? "Proceed to Checkout" : checkoutStep === 1 ? "Proceed to Payment" : "Place Order"}
+                    {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : checkoutStep === 0 ? "Proceed to Checkout" : checkoutStep === 1 ? "Proceed to Payment" : "Place Order"}
                   </button>
                 </div>
               </div>

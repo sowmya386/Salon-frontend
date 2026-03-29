@@ -231,8 +231,8 @@ const Profile = () => {
               My Bookings
             </h2>
             <div className="space-y-4">
-               {bookings.map(b => (
-                  <div key={b.bookingId} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
+               {[...bookings].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)).map(b => (
+                  <div key={b.bookingId || b.id} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
                      <div>
                         <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{b.serviceName || "Service Appointment"}</h4>
                         <div className="flex items-center gap-4 text-sm tracking-wide mt-1">
@@ -247,7 +247,7 @@ const Profile = () => {
                                if(!window.confirm("Are you sure you want to cancel this booking?")) return;
                                try {
                                   await api.put(`/customers/bookings/${b.bookingId || b.id}/cancel`);
-                                  setBookings(bookings.map(bk => bk.bookingId === b.bookingId ? {...bk, status: 'CANCELLED'} : bk));
+                                  setBookings(bookings.map(bk => (bk.bookingId || bk.id) === (b.bookingId || b.id) ? {...bk, status: 'CANCELLED'} : bk));
                                } catch (e) { alert("Failed to cancel."); }
                              }} className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-full border border-red-200 transition-colors">Cancel</button>
                            </div>
@@ -378,6 +378,23 @@ const Profile = () => {
                   className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 text-gray-900 font-medium transition-all shadow-sm"
                   placeholder="+91 9999999999"
                 />
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  type="button" 
+                  onClick={async () => {
+                     try {
+                        await api.post("/auth/forgot-password", { email: profile?.email });
+                        alert("Password reset link sent to your email!");
+                     } catch(e) {
+                        alert("Could not send password reset link. Please check your console.");
+                     }
+                  }}
+                  className="w-full text-sm font-bold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 py-3 rounded-xl transition-colors"
+                >
+                  Send Password Reset Link
+                </button>
               </div>
 
               <div className="pt-2 flex gap-3">

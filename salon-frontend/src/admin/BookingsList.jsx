@@ -49,7 +49,7 @@ const BookingsList = () => {
       }
       
       // Optimistic update for UI feedback
-      setBookings(bookings.map(b => b.bookingId === bookingId ? { ...b, status: newStatus } : b));
+      setBookings(bookings.map(b => (b.bookingId || b.id) === bookingId ? { ...b, status: newStatus } : b));
     } catch (e) {
        console.error(e);
        alert("Failed to update booking status.");
@@ -137,7 +137,7 @@ const BookingsList = () => {
                   </td>
                 </tr>
               ) : (
-                filteredBookings.map((booking, idx) => {
+                [...filteredBookings].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)).map((booking, idx) => {
                   const custName = booking.customerName || "Walk-in";
                   const srvName = booking.serviceName || "Service";
                   const time = new Date(booking.appointmentTime || new Date()).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });

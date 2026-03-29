@@ -31,7 +31,7 @@ const AdminDashboard = () => {
         // Fetch summary stats and bookings in parallel
         const [summaryRes, bookingsRes] = await Promise.all([
           getDashboardSummary(),
-          getAdminBookings({ size: 5 }) // fetch 5 recent bookings
+          getAdminBookings({ size: 5, sort: 'appointmentTime,desc' }) // fetch 5 recent bookings
         ]);
         
         setSummaryData(summaryRes.data);
