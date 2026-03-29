@@ -187,19 +187,38 @@ const Register = () => {
         </div>
 
         {activeTab === "CUSTOMER" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
-            <div className="relative">
-              <input
-                required
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+91 9876543210"
-                className="w-full px-4 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
-              />
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+              <div className="relative">
+                <input
+                  required
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+91 9876543210"
+                  className="w-full px-4 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
+                />
+              </div>
             </div>
-          </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Your Salon</label>
+              <select
+                required
+                value={formData.salonName}
+                onChange={(e) => setFormData({ ...formData, salonName: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm"
+              >
+                {salons.map((salon) => (
+                  <option key={salon.id} value={salon.name}>
+                    {salon.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-2">Pick the salon you wish to book with.</p>
+            </div>
+          </>
         )}
 
         {activeTab === "ADMIN" && (
