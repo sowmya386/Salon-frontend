@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import api from "../../api/axios";
-import { User, Calendar, Receipt, Clock, MapPin, Loader2, CheckCircle2, Award, Sparkles, ChevronRight, ShoppingBag, Scissors, X, Save, CreditCard } from "lucide-react";
+import { User, Calendar, Clock, Loader2, Award, Sparkles, ChevronRight, ShoppingBag, X, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "../../lib/utils";
-import { downloadInvoicePdf } from "../../utils/pdfGenerator";
-import PaymentMethods from "./PaymentMethods";
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
 
   // Edit Profile Modal States
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -41,15 +37,10 @@ const Profile = () => {
         profileImageUrl: profileRes.data.profileImageUrl || "" 
       });
 
-      // Fetch Bookings
+      // Fetch Bookings for gamification
       const bookingsRes = await api.get("/customers/bookings").catch(() => ({ data: [] }));
       const bks = bookingsRes.data?.content || bookingsRes.data || [];
       setBookings(Array.isArray(bks) ? bks : []);
-
-      // Fetch Invoices
-      const invoicesRes = await api.get("/customers/invoices").catch(() => ({ data: [] }));
-      const invs = invoicesRes.data?.content || invoicesRes.data || [];
-      setInvoices(Array.isArray(invs) ? invs : []);
       
     } catch (err) {
       console.error(err);
@@ -102,41 +93,9 @@ const Profile = () => {
   const upcomingBookings = bookings.filter(b => b.status === "BOOKED" && new Date(b.appointmentTime) > new Date()).sort((a,b) => new Date(a.appointmentTime) - new Date(b.appointmentTime));
   const nextAppointment = upcomingBookings[0];
 
-  const tabs = [
-    { id: 'overview', name: 'Overview', icon: <User className="w-4 h-4" /> },
-    { id: 'bookings', name: 'My Bookings', icon: <Calendar className="w-4 h-4" /> },
-    { id: 'invoices', name: 'My Invoices', icon: <Receipt className="w-4 h-4" /> },
-    { id: 'payments', name: 'Payment Methods', icon: <CreditCard className="w-4 h-4" /> },
-  ];
-
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 relative">
-      
-      {/* Tab Navigation */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar border-b border-gray-200 pb-px">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "flex items-center gap-2 px-6 py-3 font-bold text-sm transition-all whitespace-nowrap",
-              activeTab === tab.id
-                ? "text-primary-600 border-b-2 border-primary-600"
-                : "text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-t-lg"
-            )}
-          >
-            {tab.icon}
-            {tab.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      <div className="min-h-[50vh]">
-        
-        {/* OVERVIEW TAB */}
-        {activeTab === 'overview' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="space-y-8">
             
             {/* dynamic greeting hero banner */}
             <div className="relative rounded-3xl overflow-hidden bg-gray-900 text-white p-8 md:p-12 shadow-2xl">
@@ -221,99 +180,6 @@ const Profile = () => {
               </div>
             </div>
           </div>
-        )}
-
-        {/* BOOKINGS TAB */}
-        {activeTab === 'bookings' && (
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-primary-500" />
-              My Bookings
-            </h2>
-            <div className="space-y-4">
-               {[...bookings].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)).map(b => (
-                  <div key={b.bookingId || b.id} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
-                     <div>
-                        <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{b.serviceName || "Service Appointment"}</h4>
-                        <div className="flex items-center gap-4 text-sm tracking-wide mt-1">
-                           <span className="text-gray-500 flex items-center gap-1.5"><Clock className="w-4 h-4"/> {new Date(b.appointmentTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                        </div>
-                     </div>
-                     <div>
-                        {b.status === 'BOOKED' ? (
-                           <div className="flex items-center gap-3">
-                             <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-blue-200 shadow-sm">Confirmed</span>
-                             <button onClick={async () => {
-                               if(!window.confirm("Are you sure you want to cancel this booking?")) return;
-                               try {
-                                  await api.put(`/customers/bookings/${b.bookingId || b.id}/cancel`);
-                                  setBookings(bookings.map(bk => (bk.bookingId || bk.id) === (b.bookingId || b.id) ? {...bk, status: 'CANCELLED'} : bk));
-                               } catch (e) { alert("Failed to cancel."); }
-                             }} className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-full border border-red-200 transition-colors">Cancel</button>
-                           </div>
-                        ) : b.status === 'COMPLETED' ? (
-                           <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-green-200 shadow-sm"><CheckCircle2 className="w-3.5 h-3.5"/> Completed</span>
-                        ) : b.status === 'CANCELLED' ? (
-                           <div className="flex flex-col items-end gap-1">
-                             <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-red-200 shadow-sm">Cancelled</span>
-                             {b.cancellationMessage && <span className="text-xs text-red-500 font-medium">Reason: {b.cancellationMessage}</span>}
-                           </div>
-                        ) : (
-                           <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-gray-200 shadow-sm">{b.status}</span>
-                        )}
-                     </div>
-                  </div>
-               ))}
-               {bookings.length === 0 && (
-                 <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                   <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                   <p className="text-gray-500 font-medium">No bookings found.</p>
-                   <Link to="/portal/book" className="text-primary-600 font-bold hover:underline mt-2 inline-block">Book an appointment</Link>
-                 </div>
-               )}
-            </div>
-          </div>
-        )}
-
-        {/* INVOICES TAB */}
-        {activeTab === 'invoices' && (
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-amber-500" />
-              Invoice History
-            </h2>
-            <div className="space-y-4">
-               {invoices.map(inv => (
-                  <div key={inv.invoiceId} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
-                     <div>
-                        <h4 className="font-bold text-gray-900">Order #{inv.invoiceId}</h4>
-                        <div className="text-sm text-gray-500 mt-1">{new Date(inv.createdAt).toLocaleDateString()}</div>
-                     </div>
-                     <div className="text-right flex flex-col items-end gap-1">
-                        <div className="font-extrabold text-gray-900 text-lg mb-1">₹{inv.totalAmount}</div>
-                        <span className="inline-flex items-center gap-1 text-green-600 text-xs font-bold uppercase">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> {inv.paymentMode || "PAID"}
-                        </span>
-                        <button onClick={() => downloadInvoicePdf({ ...inv, customer: profile })} className="mt-1 text-xs font-semibold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-md transition-colors">Download PDF</button>
-                     </div>
-                  </div>
-               ))}
-               {invoices.length === 0 && (
-                 <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                   <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                   <p className="text-gray-500 font-medium">No invoices found.</p>
-                 </div>
-               )}
-            </div>
-          </div>
-        )}
-
-        {/* PAYMENTS TAB */}
-        {activeTab === 'payments' && (
-           <PaymentMethods />
-        )}
-
-      </div>
 
       {/* Edit Profile Modal */}
       {isEditOpen && (

@@ -22,6 +22,9 @@ import Home from "./pages/customer/Home";
 import PublicServices from "./pages/customer/Services";
 import PublicProducts from "./pages/customer/Products";
 import Profile from "./pages/customer/Profile";
+import MyBookings from "./pages/customer/MyBookings";
+import MyInvoices from "./pages/customer/MyInvoices";
+import PaymentMethods from "./pages/customer/PaymentMethods";
 import BookAppointment from "./pages/customer/BookAppointment";
 import SuperAdminDashboard from "./admin/SuperAdminDashboard";
 import OAuthCallback from "./pages/auth/OAuthCallback";
@@ -42,6 +45,9 @@ function App() {
           <Route element={<ErrorBoundary><CustomerLayout /></ErrorBoundary>}>
             <Route index element={<Navigate to="profile" replace />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="bookings" element={<MyBookings />} />
+            <Route path="invoices" element={<MyInvoices />} />
+            <Route path="payments" element={<PaymentMethods />} />
             <Route path="book" element={<BookAppointment />} />
           </Route>
         </Route>

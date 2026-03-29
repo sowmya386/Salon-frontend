@@ -16,27 +16,31 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { getDashboardSummary, getAdminBookings } from "../api/dashboard.api";
+import { getDashboardSummary, getAdminBookings, getTopCustomers, getInactiveCustomers } from "../api/dashboard.api";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [summaryData, setSummaryData] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
+  const [inactiveCustomers, setInactiveCustomers] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Fetch summary stats and bookings in parallel
-        const [summaryRes, bookingsRes] = await Promise.all([
+        const [summaryRes, bookingsRes, topCustRes, inactiveRes] = await Promise.all([
           getDashboardSummary(),
-          getAdminBookings({ size: 5, sort: 'appointmentTime,desc' }) // fetch 5 recent bookings
+          getAdminBookings({ size: 5, sort: 'appointmentTime,desc' }),
+          getTopCustomers(),
+          getInactiveCustomers(30, { size: 5 })
         ]);
         
         setSummaryData(summaryRes.data);
-        // Assuming Pageable structure, the items are usually in .content
         setAppointments(bookingsRes.data?.content || bookingsRes.data || []);
+        setTopCustomers(topCustRes.data || []);
+        setInactiveCustomers(inactiveRes.data?.content || []);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Failed to load dashboard data. Assuming mock data for now.");
@@ -251,6 +255,75 @@ const AdminDashboard = () => {
             })}
           </div>
         </div>
+      </div>
+
+      {/* Retention & Growth Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        
+        {/* Top Spenders */}
+        <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl border border-white/40 shadow-[0_8px_40px_rgb(0,0,0,0.06)] relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-green-400 to-green-600"></div>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+               <h2 className="text-xl font-extrabold text-gray-900">VIP Clients</h2>
+               <p className="text-sm font-medium text-gray-500 mt-1">Top spenders by lifetime revenue</p>
+            </div>
+            <div className="p-2 bg-green-50 rounded-xl text-green-600">
+               <TrendingUp className="w-5 h-5"/>
+            </div>
+          </div>
+          <div className="space-y-4">
+             {topCustomers.length === 0 ? <p className="text-sm text-gray-400 font-medium">No sales data yet.</p> : topCustomers.map((cust, i) => (
+               <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center">
+                     {cust.name?.charAt(0) || "C"}
+                   </div>
+                   <div>
+                     <p className="font-bold text-gray-900 text-sm">{cust.name}</p>
+                     <p className="text-xs text-gray-500 font-medium">{cust.totalInvoices} Invoices</p>
+                   </div>
+                 </div>
+                 <div className="font-black text-green-700 tracking-tight">
+                   Rs {cust.totalSpend?.toLocaleString()}
+                 </div>
+               </div>
+             ))}
+          </div>
+        </div>
+
+        {/* Inactive Customers */}
+        <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl border border-white/40 shadow-[0_8px_40px_rgb(0,0,0,0.06)] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-red-400 to-red-600"></div>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+               <h2 className="text-xl font-extrabold text-gray-900">Requires Attention</h2>
+               <p className="text-sm font-medium text-gray-500 mt-1">Inactive for over 30 days</p>
+            </div>
+            <div className="p-2 bg-red-50 rounded-xl text-red-600">
+               <Activity className="w-5 h-5"/>
+            </div>
+          </div>
+          <div className="space-y-4">
+             {inactiveCustomers.length === 0 ? <p className="text-sm text-gray-400 font-medium">All clear! No inactive clients.</p> : inactiveCustomers.map((cust, i) => (
+               <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-red-50 bg-white hover:border-red-100 transition-colors">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
+                       <Users className="w-5 h-5"/>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">{cust.fullName}</p>
+                      <p className="text-xs text-gray-500 font-medium">{cust.email}</p>
+                    </div>
+                 </div>
+                 <button className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
+                    Re-engage
+                 </button>
+               </div>
+             ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );

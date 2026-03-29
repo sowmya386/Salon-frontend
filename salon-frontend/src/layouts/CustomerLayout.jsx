@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { Scissors, Menu, X, Instagram, Facebook, Twitter, LogOut, User as UserIcon } from "lucide-react";
 import { getToken, getRole, clearAuth } from "../utils/auth";
 import { cn } from "../lib/utils";
@@ -7,6 +7,7 @@ import BotWidget from "../components/BotWidget";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const token = getToken();
@@ -122,7 +123,63 @@ const CustomerLayout = () => {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full bg-gray-50/50">
+      <main className="flex-1 w-full bg-gray-50/50 relative">
+        {/* Customer Portal Sub-Navigation */}
+        {location.pathname.startsWith("/portal") && (
+           <div className="bg-white border-b border-gray-200 sticky top-20 z-40 hidden md:block">
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+               <div className="flex space-x-8">
+                 {[
+                    {name: "Overview", path: "/portal/profile"},
+                    {name: "My Bookings", path: "/portal/bookings"},
+                    {name: "My Invoices", path: "/portal/invoices"},
+                    {name: "Payment Methods", path: "/portal/payments"},
+                 ].map(tab => (
+                   <NavLink
+                     key={tab.name}
+                     to={tab.path}
+                     className={({ isActive }) => cn(
+                       "relative py-4 text-sm font-bold tracking-wide transition-colors",
+                       isActive ? "text-primary-600" : "text-gray-500 hover:text-gray-900"
+                     )}
+                   >
+                     {({ isActive }) => (
+                       <>
+                         {tab.name}
+                         {isActive && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-600 rounded-t-full" />}
+                       </>
+                     )}
+                   </NavLink>
+                 ))}
+               </div>
+             </div>
+           </div>
+        )}
+
+        <div className="md:hidden">
+            {location.pathname.startsWith("/portal") && (
+                <div className="bg-white border-b border-gray-200 flex overflow-x-auto no-scrollbar scroll-smooth px-4 py-3 gap-4 sticky top-20 z-40 shadow-sm">
+                 {[
+                    {name: "Overview", path: "/portal/profile"},
+                    {name: "Bookings", path: "/portal/bookings"},
+                    {name: "Invoices", path: "/portal/invoices"},
+                    {name: "Payments", path: "/portal/payments"},
+                 ].map(tab => (
+                   <NavLink
+                     key={tab.name}
+                     to={tab.path}
+                     className={({ isActive }) => cn(
+                       "flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap",
+                       isActive ? "bg-primary-50 text-primary-700 shadow-sm border border-primary-100" : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent"
+                     )}
+                   >
+                     {tab.name}
+                   </NavLink>
+                 ))}
+                </div>
+            )}
+        </div>
+
         <Outlet />
       </main>
 
