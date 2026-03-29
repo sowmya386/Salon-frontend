@@ -39,3 +39,13 @@ export const toggleStaffActive = (id) => {
 export const deleteStaff = (id) => {
   return api.delete(`/admin/staff/${id}`);
 };
+
+export const getPendingAdmins = () => {
+  return api.get("/admin/pending-admins").catch(() => {
+    return { data: [] };
+  });
+};
+
+export const approvePendingAdmin = (id) => {
+  return api.put(`/admin/pending-admins/${id}/approve`);
+};

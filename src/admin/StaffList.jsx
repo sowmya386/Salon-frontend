@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getStaff, createStaff, updateStaff, toggleStaffActive, deleteStaff } from "../api/people.api";
+import { getStaff, createStaff, updateStaff, toggleStaffActive, deleteStaff, getPendingAdmins, approvePendingAdmin } from "../api/people.api";
 import { Search, UserCircle, Plus, Loader2, CalendarClock, Phone, X, AlertTriangle } from "lucide-react";
 
 const AddStaffModal = ({ isOpen, onClose, onRefresh }) => {
@@ -168,6 +168,7 @@ const EditStaffModal = ({ isOpen, onClose, onRefresh, staff }) => {
 
 const StaffList = () => {
   const [staffList, setStaffList] = useState([]);
+  const [pendingAdmins, setPendingAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
@@ -176,7 +177,14 @@ const StaffList = () => {
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const res = await getStaff();
+      const [res, pendingRes] = await Promise.all([
+        getStaff(),
+        getPendingAdmins()
+      ]);
+      
+      const pData = pendingRes.data || [];
+      setPendingAdmins(pData);
+
       const data = res.data?.content || res.data || [];
       if (Array.isArray(data) && data.length === 0) {
         setStaffList([
@@ -190,6 +198,7 @@ const StaffList = () => {
     } catch (err) {
       console.error(err);
       setStaffList([]);
+      setPendingAdmins([]);
     } finally {
       setLoading(false);
     }
@@ -206,6 +215,17 @@ const StaffList = () => {
       fetchStaff();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleApproveAdmin = async (id) => {
+    if(!window.confirm("Approve this Admin for your salon? They will be granted full access immediately.")) return;
+    try {
+      await approvePendingAdmin(id);
+      fetchStaff();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to approve admin");
     }
   };
 
@@ -232,6 +252,28 @@ const StaffList = () => {
           className="w-full pl-10 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder-gray-400"
         />
       </div>
+
+      {pendingAdmins.length > 0 && (
+        <div className="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-2xl animate-in fade-in">
+          <h2 className="text-xl font-bold text-yellow-900 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Pending Administrator Approvals ({pendingAdmins.length})
+          </h2>
+          <div className="space-y-4">
+            {pendingAdmins.map(admin => (
+              <div key={admin.id} className="bg-white p-4 rounded-xl shadow-sm border border-yellow-100 flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-gray-900">{admin.fullName}</p>
+                  <p className="text-sm text-gray-500">{admin.email}</p>
+                </div>
+                <button onClick={() => handleApproveAdmin(admin.id)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                  Approve Admin
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 mt-6">
         {loading ? (
