@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { getInvoices } from "../api/billing.api";
 import { Plus, Search, Receipt, Loader2, IndianRupee, Printer, Download, CheckCircle2, Clock } from "lucide-react";
 import { downloadInvoicePdf } from "../utils/pdfGenerator";
+import CreateInvoiceModal from "./CreateInvoiceModal";
 
 const BillingList = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [showModal, setShowModal] = useState(false);
 
   const fetchInvoices = async () => {
     try {
@@ -65,7 +67,7 @@ const BillingList = () => {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Billing & Invoices</h1>
           <p className="text-sm text-gray-500 mt-1">Manage payments, create invoices, and print receipts.</p>
         </div>
-        <button className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all flex items-center gap-2">
+        <button onClick={() => setShowModal(true)} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Create Invoice
         </button>
@@ -172,6 +174,16 @@ const BillingList = () => {
           </table>
         </div>
       </div>
+      
+      {showModal && (
+        <CreateInvoiceModal 
+          onClose={() => setShowModal(false)}
+          onSuccess={() => {
+            setShowModal(false);
+            fetchInvoices();
+          }}
+        />
+      )}
     </div>
   );
 };

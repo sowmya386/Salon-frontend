@@ -42,7 +42,7 @@ const MyBookings = () => {
          {[...bookings].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)).map(b => (
             <div key={b.bookingId || b.id} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
                <div>
-                  <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{b.serviceName || "Service Appointment"}</h4>
+                  <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{b.serviceName || "Service Appointment"} <span className="text-sm font-normal text-gray-500 ml-2">@ {b.salonName || "Salon"}</span></h4>
                   <div className="flex items-center gap-4 text-sm tracking-wide mt-1">
                      <span className="text-gray-500 flex items-center gap-1.5"><Clock className="w-4 h-4"/> {new Date(b.appointmentTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>

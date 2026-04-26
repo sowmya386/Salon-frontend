@@ -126,7 +126,11 @@ const Profile = () => {
                             </div>
                             <p className="text-gray-400 font-bold text-xs">{totalVisits}/{targetVisits}</p>
                           </div>
-                          <p className="text-[10px] text-gray-500 mt-1.5">{targetVisits - totalVisits} visits to {nextTier} tier!</p>
+                          <p className="text-[10px] text-gray-500 mt-1.5 flex items-center gap-2">
+                             <span>{targetVisits - totalVisits} visits to {nextTier}!</span>
+                             <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
+                             <span className="text-amber-400 font-bold">{profile?.loyaltyPoints || 0} Points Available</span>
+                          </p>
                         </div>
                     </div>
                   </div>

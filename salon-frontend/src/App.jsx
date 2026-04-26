@@ -22,6 +22,8 @@ import Home from "./pages/customer/Home";
 import PublicServices from "./pages/customer/Services";
 import PublicProducts from "./pages/customer/Products";
 import Profile from "./pages/customer/Profile";
+import Salons from "./pages/customer/Salons";
+import SalonProfile from "./pages/customer/SalonProfile";
 import MyBookings from "./pages/customer/MyBookings";
 import MyInvoices from "./pages/customer/MyInvoices";
 import PaymentMethods from "./pages/customer/PaymentMethods";
@@ -36,6 +38,8 @@ function App() {
         {/* Public / Customer Routes */}
         <Route element={<ErrorBoundary><CustomerLayout /></ErrorBoundary>}>
           <Route path="/" element={<Home />} />
+          <Route path="/salons" element={<Salons />} />
+          <Route path="/salons/:id" element={<SalonProfile />} />
           <Route path="/services" element={<PublicServices />} />
           <Route path="/products" element={<PublicProducts />} />
         </Route>

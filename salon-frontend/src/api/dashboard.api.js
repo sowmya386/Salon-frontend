@@ -16,3 +16,7 @@ export const getTopCustomers = () => {
 export const getInactiveCustomers = (days = 30, params) => {
   return api.get(`/admin/customers/inactive?days=${days}`, { params });
 };
+
+export const getProductSales = () => {
+  return api.get("/admin/analytics/product-sales");
+};

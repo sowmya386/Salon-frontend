@@ -14,9 +14,12 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
-import { getDashboardSummary, getAdminBookings, getTopCustomers, getInactiveCustomers } from "../api/dashboard.api";
+import { getDashboardSummary, getAdminBookings, getTopCustomers, getInactiveCustomers, getProductSales } from "../api/dashboard.api";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -25,22 +28,25 @@ const AdminDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [topCustomers, setTopCustomers] = useState([]);
   const [inactiveCustomers, setInactiveCustomers] = useState([]);
+  const [productSales, setProductSales] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [summaryRes, bookingsRes, topCustRes, inactiveRes] = await Promise.all([
+        const [summaryRes, bookingsRes, topCustRes, inactiveRes, prodSalesRes] = await Promise.all([
           getDashboardSummary(),
           getAdminBookings({ size: 5, sort: 'appointmentTime,desc' }),
           getTopCustomers(),
-          getInactiveCustomers(30, { size: 5 })
+          getInactiveCustomers(30, { size: 5 }),
+          getProductSales()
         ]);
         
         setSummaryData(summaryRes.data);
         setAppointments(bookingsRes.data?.content || bookingsRes.data || []);
         setTopCustomers(topCustRes.data || []);
         setInactiveCustomers(inactiveRes.data?.content || []);
+        setProductSales(prodSalesRes.data || []);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Failed to load dashboard data. Assuming mock data for now.");
@@ -324,6 +330,48 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* Product Sales Analytics Row */}
+      <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl border border-white/40 shadow-[0_8px_40px_rgb(0,0,0,0.06)] relative overflow-hidden mt-8">
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-400 to-indigo-600"></div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+             <h2 className="text-xl font-extrabold text-gray-900">Product Sales Analytics</h2>
+             <p className="text-sm font-medium text-gray-500 mt-1">Units sold and revenue generated</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="h-64">
+            {productSales.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={productSales} dataKey="unitsSold" nameKey="productName" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                    {productSales.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#d4af37', '#aa8126', '#111827', '#4B5563', '#9CA3AF'][index % 5]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-400 font-medium">No product sales yet.</div>
+            )}
+          </div>
+          <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+             {productSales.map((sale, i) => (
+               <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white">
+                 <div>
+                   <p className="font-bold text-gray-900">{sale.productName}</p>
+                   <p className="text-xs font-medium text-gray-500">{sale.unitsSold} Units Sold</p>
+                 </div>
+                 <div className="font-bold text-primary-600">
+                   ₹{sale.totalRevenue?.toLocaleString()}
+                 </div>
+               </div>
+             ))}
+          </div>
+        </div>
       </div>
     </div>
   );
