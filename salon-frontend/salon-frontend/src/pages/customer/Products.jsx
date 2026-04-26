@@ -25,7 +25,7 @@ const Products = () => {
     try {
       setProcessing(true);
       if (['Card', 'PhonePe', 'Google Pay'].includes(checkoutData.paymentMethod)) {
-         // simulated mock payment bypass
+         await new Promise(resolve => setTimeout(resolve, 1500));
       }
       
       const payload = {

@@ -72,6 +72,8 @@ const BookAppointment = () => {
          // Normally we would call /payments/create-order and then rzp.open()
          // Here we simulate instant success
          console.log(`Mock payment of ₹${finalPrice} via ${formData.paymentMethod}`);
+         
+         await new Promise(resolve => setTimeout(resolve, 1500)); // simulate slight delay
          await api.post("/customers/bookings", payload);
          
          setSuccess(true);
@@ -173,20 +175,6 @@ const BookAppointment = () => {
           {/* Booking Summary */}
           {selectedServiceDetails && (
             <div className="bg-primary-50 rounded-2xl p-6 border border-primary-100 flex flex-col gap-4 animate-in slide-in-from-bottom-2">
-               <div className="flex items-center gap-4 border-b border-primary-200 pb-4">
-                 {selectedServiceDetails.imageUrl ? (
-                   <img src={selectedServiceDetails.imageUrl} alt={selectedServiceDetails.name} className="w-16 h-16 rounded-xl object-cover shadow-sm bg-white" />
-                 ) : (
-                   <div className="w-16 h-16 rounded-xl bg-white border border-primary-200 flex items-center justify-center text-primary-600 shadow-sm">
-                     <span className="font-bold text-xs">SERVICE</span>
-                   </div>
-                 )}
-                 <div>
-                   <h3 className="text-lg font-bold text-gray-900">{selectedServiceDetails.name}</h3>
-                   <p className="text-sm text-gray-500 font-medium">{selectedServiceDetails.durationInMinutes} mins duration</p>
-                 </div>
-               </div>
-               
                {loyaltyPoints > 0 && (
                  <div className="flex items-center justify-between border-b border-primary-200 pb-4">
                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => setRedeemPoints(!redeemPoints)}>

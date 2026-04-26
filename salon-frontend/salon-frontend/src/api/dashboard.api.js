@@ -20,7 +20,3 @@ export const getInactiveCustomers = (days = 30, params) => {
 export const getProductSales = () => {
   return api.get("/admin/analytics/product-sales");
 };
-
-export const updateSalonSettings = (data) => {
-  return api.put("/admin/salon-settings", data);
-};

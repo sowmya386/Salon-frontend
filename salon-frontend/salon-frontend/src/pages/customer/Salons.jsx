@@ -78,7 +78,7 @@ const Salons = () => {
               <div className="h-48 bg-gray-100 relative overflow-hidden">
                 {/* Placeholder Image */}
                 <img 
-                  src={salon.imageUrl || `https://images.unsplash.com/photo-1522337660859-02fbefca4702?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`} 
+                  src={`https://images.unsplash.com/photo-1522337660859-02fbefca4702?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`} 
                   alt={salon.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />

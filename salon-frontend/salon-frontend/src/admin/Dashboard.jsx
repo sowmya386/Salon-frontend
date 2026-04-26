@@ -19,60 +19,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { getDashboardSummary, getAdminBookings, getTopCustomers, getInactiveCustomers, getProductSales, updateSalonSettings } from "../api/dashboard.api";
-import { Settings, X } from "lucide-react";
-
-const SalonSettingsModal = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
-    description: "",
-    imageUrl: ""
-  });
-  const [loading, setLoading] = useState(false);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      await updateSalonSettings(formData);
-      alert("Salon settings updated successfully!");
-      onClose();
-    } catch (err) {
-      console.error("Failed to update salon settings", err);
-      alert("Failed to update settings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in-95 duration-200">
-        <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors">
-          <X className="w-5 h-5"/>
-        </button>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Salon Settings</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Salon Description</label>
-            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="A beautiful salon..." rows={3} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Salon Banner Image URL</label>
-            <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="https://..." />
-          </div>
-          <div className="pt-4 flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800 shadow-lg shadow-gray-900/20 transition-all flex items-center justify-center">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+import { getDashboardSummary, getAdminBookings, getTopCustomers, getInactiveCustomers, getProductSales } from "../api/dashboard.api";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -82,7 +29,6 @@ const AdminDashboard = () => {
   const [topCustomers, setTopCustomers] = useState([]);
   const [inactiveCustomers, setInactiveCustomers] = useState([]);
   const [productSales, setProductSales] = useState([]);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -181,14 +127,9 @@ const AdminDashboard = () => {
           <p className="text-sm font-medium text-gray-500 mt-2">Welcome back! Here's a snapshot of your salon empire.</p>
           {error && <p className="text-sm text-red-500 mt-3 bg-red-50 px-3 py-1.5 rounded-md inline-block border border-red-100 font-medium">{error}</p>}
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => setIsSettingsModalOpen(true)} className="px-3 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl shadow-sm hover:bg-gray-50 transition-all font-bold text-sm flex items-center gap-2">
-            <Settings className="w-4 h-4"/> Settings
-          </button>
-          <button className="px-5 py-2.5 premium-gradient text-white rounded-xl shadow-lg shadow-primary-500/30 hover:scale-105 hover:shadow-primary-500/50 transition-all font-bold text-sm flex items-center gap-2">
-            <TrendingUp className="w-4 h-4"/> Generate Report
-          </button>
-        </div>
+        <button className="px-5 py-2.5 premium-gradient text-white rounded-xl shadow-lg shadow-primary-500/30 hover:scale-105 hover:shadow-primary-500/50 transition-all font-bold text-sm flex items-center gap-2">
+          <TrendingUp className="w-4 h-4"/> Generate Report
+        </button>
       </div>
 
       {/* Stat Cards - Mind-blowing UI */}
@@ -432,7 +373,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
-      <SalonSettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
     </div>
   );
 };

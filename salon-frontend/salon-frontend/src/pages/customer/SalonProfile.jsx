@@ -51,7 +51,7 @@ const SalonProfile = () => {
       <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden mb-12">
         <div className="h-64 bg-gray-900 relative">
           <img 
-            src={salon.imageUrl || "https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"} 
+            src="https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
             alt={salon.name}
             className="w-full h-full object-cover opacity-60"
           />
