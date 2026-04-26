@@ -16,7 +16,9 @@ export const downloadInvoicePdf = (invoiceData) => {
   
   const invoiceId = invoiceData.invoiceId || invoiceData.id || invoiceData.invoiceNumber || "N/A";
   const dateStr = new Date(invoiceData.createdAt || invoiceData.date || new Date()).toLocaleDateString();
-  const customerName = invoiceData.customerName || invoiceData.customer?.name || "Customer";
+  const customerName = invoiceData.customerName || "Customer";
+  const customerEmail = invoiceData.customerEmail || "";
+  const customerPhone = invoiceData.customerPhone || "";
 
   // Top details
   doc.text(`Invoice Number: #${invoiceId}`, 14, 32);
@@ -28,8 +30,8 @@ export const downloadInvoicePdf = (invoiceData) => {
   doc.text("Bill To:", 140, 32);
   doc.setFont("helvetica", "normal");
   doc.text(customerName, 140, 38);
-  if (invoiceData.customer?.email) doc.text(invoiceData.customer.email, 140, 44);
-  if (invoiceData.customer?.phone) doc.text(invoiceData.customer.phone, 140, 50);
+  if (customerEmail) doc.text(customerEmail, 140, 44);
+  if (customerPhone) doc.text(customerPhone, 140, 50);
 
   // Default items if empty
   const items = (invoiceData.items && invoiceData.items.length > 0) 

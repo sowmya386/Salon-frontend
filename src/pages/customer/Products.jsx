@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { getProducts } from "../../api/products.api";
 import { Loader2, Search, ShoppingBag, ArrowRight, CheckCircle2, ShoppingCart, X, Plus, Minus, MapPin, CreditCard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { getToken } from "../../utils/auth";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  
+  const navigate = useNavigate();
   // Cart & Checkout State
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -24,7 +25,7 @@ const Products = () => {
     try {
       setProcessing(true);
       if (['Card', 'PhonePe', 'Google Pay'].includes(checkoutData.paymentMethod)) {
-         await new Promise(resolve => setTimeout(resolve, 1500));
+         // simulated mock payment bypass
       }
       
       const payload = {
@@ -80,6 +81,15 @@ const Products = () => {
     return (p.name || "").toLowerCase().includes(term) || (p.description || "").toLowerCase().includes(term);
   });
 
+  const defaultImages = [
+    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80",
+    "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=500&q=80",
+    "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=500&q=80",
+    "https://images.unsplash.com/photo-1617897903246-719242758050?w=500&q=80",
+    "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=500&q=80",
+    "https://images.unsplash.com/photo-1571781526291-8fca7f7fb284?w=500&q=80"
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -120,16 +130,19 @@ const Products = () => {
              </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
-            {filteredProducts.map((product, idx) => (
+            {filteredProducts.map((product, idx) => {
+               const imgUrl = product.imageUrl || defaultImages[(product.id || idx) % defaultImages.length];
+               return (
                <div key={product.id || idx} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 flex flex-col group relative overflow-hidden">
                   <div className="absolute top-4 left-4 z-10">
-                     <span className="inline-block py-1 px-2.5 rounded-md bg-gray-100 text-gray-600 text-[10px] font-bold tracking-widest uppercase">
-                        {product.brand || "PRODUCT"}
+                     <span className="inline-block py-1 px-2.5 rounded-md text-gray-800 bg-white/90 backdrop-blur-sm text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                        {product.brand || "PREMIUM"}
                      </span>
                   </div>
 
-                  <div className="w-full h-48 bg-gray-50 rounded-2xl mb-6 flex items-center justify-center group-hover:bg-primary-50/50 transition-colors">
-                     <ShoppingBag className="w-16 h-16 text-gray-300 group-hover:text-primary-200 transition-colors" />
+                  <div className="w-full h-56 bg-gray-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden transition-colors relative">
+                     <img src={imgUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900/10 to-transparent"></div>
                   </div>
                   
                   <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">{product.name}</h3>
@@ -152,12 +165,13 @@ const Products = () => {
                      </div>
                      <button 
                         onClick={() => {
-                          const existing = cart.find(c => c.id === product.id);
-                          if(existing) {
-                            setCart(cart.map(c => c.id === product.id ? {...c, quantity: c.quantity + 1} : c));
-                          } else {
-                            setCart([...cart, { ...product, quantity: 1 }]);
-                          }
+                          setCart(prev => {
+                            const existing = prev.find(c => c.id === product.id);
+                            if(existing) {
+                              return prev.map(c => c.id === product.id ? {...c, quantity: c.quantity + 1} : c);
+                            }
+                            return [...prev, { ...product, quantity: 1 }];
+                          });
                           setIsCartOpen(true);
                           setCheckoutStep(0);
                         }}
@@ -168,14 +182,15 @@ const Products = () => {
                      </button>
                   </div>
                </div>
-            ))}
+               );
+            })}
           </div>
         )}
       </div>
 
       {/* Slide-out Cart & Checkout Drawer */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[60] flex justify-end">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
           <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white">
@@ -207,12 +222,11 @@ const Products = () => {
                            <p className="text-primary-600 font-extrabold text-sm mb-2">₹{item.price}</p>
                            <div className="flex items-center gap-3">
                              <button onClick={() => {
-                               const newCart = cart.map(c => c.id === item.id ? {...c, quantity: Math.max(0, c.quantity - 1)} : c).filter(c => c.quantity > 0);
-                               setCart(newCart);
+                               setCart(prev => prev.map(c => c.id === item.id ? {...c, quantity: Math.max(0, c.quantity - 1)} : c).filter(c => c.quantity > 0));
                              }} className="w-6 h-6 bg-gray-100 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-200">-</button>
                              <span className="font-bold text-sm">{item.quantity}</span>
                              <button onClick={() => {
-                               setCart(cart.map(c => c.id === item.id ? {...c, quantity: c.quantity + 1} : c));
+                               setCart(prev => prev.map(c => c.id === item.id ? {...c, quantity: c.quantity + 1} : c));
                              }} className="w-6 h-6 bg-gray-100 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-200">+</button>
                            </div>
                          </div>
@@ -298,6 +312,11 @@ const Products = () => {
                   )}
                   <button 
                     onClick={() => {
+                      if (!getToken()) {
+                         alert("Please create an account or log in to complete your purchase.");
+                         navigate("/login");
+                         return;
+                      }
                       if(checkoutStep < 2) setCheckoutStep(checkoutStep + 1);
                       else handlePlaceOrder(); 
                     }} 

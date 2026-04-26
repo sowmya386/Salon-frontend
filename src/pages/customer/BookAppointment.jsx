@@ -15,13 +15,21 @@ const BookAppointment = () => {
   const [formData, setFormData] = useState({
     serviceId: preSelectedServiceId || "",
     bookingDate: "",
-    bookingTime: "10:00"
+    bookingTime: "10:00",
+    paymentMethod: ""
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [redeemPoints, setRedeemPoints] = useState(false);
 
   useEffect(() => {
+    api.get("/auth/me")
+      .then(res => {
+        setLoyaltyPoints(res.data?.loyaltyPoints || 0);
+      })
+      .catch(err => console.error("Could not fetch user profile", err));
     getServices()
       .then(res => {
         const data = res.data?.content || res.data || [];
@@ -37,40 +45,48 @@ const BookAppointment = () => {
       .finally(() => setLoadingServices(false));
   }, []);
 
+  const selectedServiceDetails = services.find(s => s.id.toString() === formData.serviceId.toString());
+  const pointsToRedeem = redeemPoints ? loyaltyPoints : 0;
+  const discount = Math.floor(pointsToRedeem / 60);
+  const originalPrice = selectedServiceDetails ? selectedServiceDetails.price : 0;
+  const finalPrice = Math.max(0, originalPrice - discount);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
 
     try {
-      // POST /customers/bookings
-      // Backend expects: { serviceId: Long, appointmentTime: LocalDateTime }
       const appointmentTime = `${formData.bookingDate}T${formData.bookingTime}:00`;
 
       const payload = {
         serviceId: Number(formData.serviceId),
         appointmentTime,
-        paymentMethod: formData.paymentMethod || "Pay at Salon",
-        address: formData.isHomeService ? formData.homeAddress : null
+        paymentMethod: formData.paymentMethod,
+        address: formData.isHomeService ? formData.homeAddress : null,
+        redeemLoyaltyPoints: pointsToRedeem
       };
 
       if (['Card', 'PhonePe', 'Google Pay'].includes(formData.paymentMethod)) {
-         // simulate payment gateway redirect delay
-         await new Promise(resolve => setTimeout(resolve, 2000));
+         // Mock Payment Bypass for testing
+         // Normally we would call /payments/create-order and then rzp.open()
+         // Here we simulate instant success
+         console.log(`Mock payment of ₹${finalPrice} via ${formData.paymentMethod}`);
+         await api.post("/customers/bookings", payload);
+         
+         setSuccess(true);
+         setTimeout(() => navigate("/portal/profile"), 3000);
+      } else {
+         await api.post("/customers/bookings", payload);
+         setSuccess(true);
+         setTimeout(() => navigate("/portal/profile"), 3000);
       }
-
-      await api.post("/customers/bookings", payload);
-      setSuccess(true);
-      setTimeout(() => navigate("/portal/profile"), 3000);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Failed to book appointment. Please check availability.");
-    } finally {
       setSubmitting(false);
     }
   };
-
-  const selectedServiceDetails = services.find(s => s.id.toString() === formData.serviceId.toString());
 
   if (success) {
     return (
@@ -156,12 +172,49 @@ const BookAppointment = () => {
 
           {/* Booking Summary */}
           {selectedServiceDetails && (
-            <div className="bg-primary-50 rounded-2xl p-6 border border-primary-100 flex justify-between items-center animate-in slide-in-from-bottom-2">
-               <div>
-                  <h4 className="font-bold text-gray-900">Total Price</h4>
-                  <p className="text-sm text-gray-500 font-medium">Includes taxes and fees</p>
+            <div className="bg-primary-50 rounded-2xl p-6 border border-primary-100 flex flex-col gap-4 animate-in slide-in-from-bottom-2">
+               <div className="flex items-center gap-4 border-b border-primary-200 pb-4">
+                 {selectedServiceDetails.imageUrl ? (
+                   <img src={selectedServiceDetails.imageUrl} alt={selectedServiceDetails.name} className="w-16 h-16 rounded-xl object-cover shadow-sm bg-white" />
+                 ) : (
+                   <div className="w-16 h-16 rounded-xl bg-white border border-primary-200 flex items-center justify-center text-primary-600 shadow-sm">
+                     <span className="font-bold text-xs">SERVICE</span>
+                   </div>
+                 )}
+                 <div>
+                   <h3 className="text-lg font-bold text-gray-900">{selectedServiceDetails.name}</h3>
+                   <p className="text-sm text-gray-500 font-medium">{selectedServiceDetails.durationInMinutes} mins duration</p>
+                 </div>
                </div>
-               <div className="text-3xl font-extrabold text-primary-700">₹{selectedServiceDetails.price}</div>
+               
+               {loyaltyPoints > 0 && (
+                 <div className="flex items-center justify-between border-b border-primary-200 pb-4">
+                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => setRedeemPoints(!redeemPoints)}>
+                     <input type="checkbox" checked={redeemPoints} onChange={(e) => setRedeemPoints(e.target.checked)} className="w-5 h-5 rounded border-primary-300 text-primary-600 focus:ring-primary-500" />
+                     <div>
+                       <h4 className="font-bold text-gray-900 text-sm">Redeem {loyaltyPoints} Loyalty Points</h4>
+                       <p className="text-xs text-primary-700 font-medium mt-0.5">Save ₹{Math.floor(loyaltyPoints / 60)}</p>
+                     </div>
+                   </div>
+                 </div>
+               )}
+               <div className="flex justify-between items-center text-sm font-medium text-gray-600">
+                  <span>Subtotal</span>
+                  <span>₹{originalPrice}</span>
+               </div>
+               {redeemPoints && discount > 0 && (
+                  <div className="flex justify-between items-center text-sm font-bold text-green-600">
+                    <span>Loyalty Discount</span>
+                    <span>-₹{discount}</span>
+                  </div>
+               )}
+               <div className="flex justify-between items-center mt-2 pt-2 border-t border-primary-200">
+                  <div>
+                    <h4 className="font-extrabold text-gray-900 text-lg">Total Price</h4>
+                    <p className="text-xs text-gray-500 font-medium">Includes taxes and fees</p>
+                  </div>
+                  <div className="text-3xl font-black text-primary-700">₹{finalPrice}</div>
+               </div>
             </div>
           )}
 
@@ -201,7 +254,7 @@ const BookAppointment = () => {
                        type="radio" 
                        name="paymentMethod" 
                        value={method}
-                       checked={formData.paymentMethod === method || (!formData.paymentMethod && method === 'Pay at Salon')}
+                       checked={formData.paymentMethod === method}
                        onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
                        className="sr-only"
                      />
@@ -222,7 +275,7 @@ const BookAppointment = () => {
              </button>
              <button 
                type="submit" 
-               disabled={submitting || !formData.serviceId || !formData.bookingDate || (formData.isHomeService && !formData.homeAddress)}
+               disabled={submitting || !formData.serviceId || !formData.bookingDate || !formData.paymentMethod || (formData.isHomeService && !formData.homeAddress)}
                className="w-full sm:w-2/3 bg-gray-900 text-white rounded-xl py-4 font-bold text-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 transition-colors shadow-xl shadow-gray-900/20 flex items-center justify-center gap-2"
              >
                {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Payment & Book"}

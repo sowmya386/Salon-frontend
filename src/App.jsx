@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Layouts
 import AdminLayout from "./layouts/AdminLayout";
@@ -21,6 +22,11 @@ import Home from "./pages/customer/Home";
 import PublicServices from "./pages/customer/Services";
 import PublicProducts from "./pages/customer/Products";
 import Profile from "./pages/customer/Profile";
+import Salons from "./pages/customer/Salons";
+import SalonProfile from "./pages/customer/SalonProfile";
+import MyBookings from "./pages/customer/MyBookings";
+import MyInvoices from "./pages/customer/MyInvoices";
+import PaymentMethods from "./pages/customer/PaymentMethods";
 import BookAppointment from "./pages/customer/BookAppointment";
 import SuperAdminDashboard from "./admin/SuperAdminDashboard";
 import OAuthCallback from "./pages/auth/OAuthCallback";
@@ -30,17 +36,22 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public / Customer Routes */}
-        <Route element={<CustomerLayout />}>
+        <Route element={<ErrorBoundary><CustomerLayout /></ErrorBoundary>}>
           <Route path="/" element={<Home />} />
+          <Route path="/salons" element={<Salons />} />
+          <Route path="/salons/:id" element={<SalonProfile />} />
           <Route path="/services" element={<PublicServices />} />
           <Route path="/products" element={<PublicProducts />} />
         </Route>
 
         {/* Customer Protected routes */}
         <Route path="/portal" element={<ProtectedRoute role="CUSTOMER" />}>
-          <Route element={<CustomerLayout />}>
+          <Route element={<ErrorBoundary><CustomerLayout /></ErrorBoundary>}>
             <Route index element={<Navigate to="profile" replace />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="bookings" element={<MyBookings />} />
+            <Route path="invoices" element={<MyInvoices />} />
+            <Route path="payments" element={<PaymentMethods />} />
             <Route path="book" element={<BookAppointment />} />
           </Route>
         </Route>
@@ -59,7 +70,9 @@ function App() {
           path="/admin"
           element={
             <ProtectedRoute role="ADMIN">
-              <AdminLayout />
+              <ErrorBoundary>
+                <AdminLayout />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         >
@@ -78,7 +91,9 @@ function App() {
           path="/super-admin"
           element={
             <ProtectedRoute role="SUPER_ADMIN">
-              <AdminLayout isSuperAdmin={true} />
+              <ErrorBoundary>
+                <AdminLayout isSuperAdmin={true} />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         >

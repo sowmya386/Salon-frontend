@@ -9,7 +9,8 @@ const AddServiceModal = ({ isOpen, onClose, onRefresh }) => {
     category: "HAIR",
     price: "",
     durationMinutes: "30",
-    description: ""
+    description: "",
+    imageUrl: ""
   });
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +24,7 @@ const AddServiceModal = ({ isOpen, onClose, onRefresh }) => {
         name: formData.name,
         price: parseFloat(formData.price),
         durationInMinutes: parseInt(formData.durationMinutes, 10),
+        imageUrl: formData.imageUrl
       });
       onRefresh();
       onClose();
@@ -65,6 +67,10 @@ const AddServiceModal = ({ isOpen, onClose, onRefresh }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
             <input required type="number" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="e.g. 1500" />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
+            <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="https://..." />
+          </div>
           <div className="pt-4 flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
             <button type="submit" disabled={loading} className="flex-1 bg-primary-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary-700 transition-colors flex items-center justify-center">
@@ -83,7 +89,8 @@ const EditServiceModal = ({ isOpen, onClose, onRefresh, service }) => {
     category: "HAIR",
     price: "",
     durationMinutes: "30",
-    description: ""
+    description: "",
+    imageUrl: ""
   });
   const [loading, setLoading] = useState(false);
 
@@ -94,7 +101,8 @@ const EditServiceModal = ({ isOpen, onClose, onRefresh, service }) => {
         category: service.category || "HAIR",
         price: service.price || "",
         durationMinutes: service.durationInMinutes || service.durationMinutes || service.duration || "30",
-        description: service.description || ""
+        description: service.description || "",
+        imageUrl: service.imageUrl || ""
       });
     }
   }, [service]);
@@ -109,6 +117,7 @@ const EditServiceModal = ({ isOpen, onClose, onRefresh, service }) => {
         name: formData.name,
         price: parseFloat(formData.price),
         durationInMinutes: parseInt(formData.durationMinutes, 10),
+        imageUrl: formData.imageUrl
       });
       onRefresh();
       onClose();
@@ -150,6 +159,10 @@ const EditServiceModal = ({ isOpen, onClose, onRefresh, service }) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
             <input required type="number" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="e.g. 1500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
+            <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="https://..." />
           </div>
           <div className="pt-4 flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
@@ -292,9 +305,13 @@ const ServicesList = () => {
                 filteredServices.map(service => (
                   <tr key={service.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
-                      <div className="p-2 bg-primary-50 text-primary-600 rounded-lg">
-                        <Scissors className="w-4 h-4" />
-                      </div>
+                      {service.imageUrl ? (
+                        <img src={service.imageUrl} alt={service.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
+                      ) : (
+                        <div className="w-10 h-10 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center shrink-0">
+                          <Scissors className="w-5 h-5" />
+                        </div>
+                      )}
                       {service.name || service.serviceName}
                     </td>
                     <td className="px-6 py-4">
