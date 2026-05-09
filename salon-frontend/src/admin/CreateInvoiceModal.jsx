@@ -19,11 +19,11 @@ const CreateInvoiceModal = ({ onClose, onSuccess }) => {
   useEffect(() => {
     Promise.all([
       api.get("/services"), // Admin gets services
-      api.get("/products")  // Admin gets products
+      api.get("/customers/products")  // Admin gets products
     ]).then(([svcsRes, prodRes]) => {
       setServices(svcsRes.data?.content || svcsRes.data || []);
       setProducts(prodRes.data?.content || prodRes.data || []);
-    }).catch(err => console.error(err))
+    }).catch(err => console.error("Error loading services/products:", err))
       .finally(() => setLoadingData(false));
   }, []);
 
