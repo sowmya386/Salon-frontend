@@ -24,7 +24,7 @@ const SalonProfile = () => {
           // Fetch services specifically for this salon
           // (Mocking this request by hitting global services but filtering if backend supports it,
           // or just showing global services for demo)
-          const servicesRes = await api.get('/public/services');
+          const servicesRes = await api.get('/customers/services');
           setServices(servicesRes.data?.content || servicesRes.data || []);
         }
       } catch (err) {

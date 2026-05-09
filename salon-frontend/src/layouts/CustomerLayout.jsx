@@ -21,6 +21,7 @@ const CustomerLayout = () => {
 
   const navLinks = [
     { name: "Home", path: "/" },
+    { name: "Salons", path: "/salons" },
     { name: "Services", path: "/services" },
     { name: "Products", path: "/products" },
   ];
