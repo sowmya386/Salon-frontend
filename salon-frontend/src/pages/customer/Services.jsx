@@ -40,15 +40,27 @@ const Services = () => {
     fetchServices();
   }, []);
 
+  const getCategory = (srv) => {
+    if (srv.category) return srv.category;
+    const name = (srv.name || "").toLowerCase();
+    if (name.includes("hair") || name.includes("cut") || name.includes("keratin")) return "Hair Care";
+    if (name.includes("massage") || name.includes("spa") || name.includes("tissue")) return "Spa & Wellness";
+    if (name.includes("makeup") || name.includes("bridal")) return "Makeup";
+    if (name.includes("nail") || name.includes("manicure") || name.includes("pedicure")) return "Nail Care";
+    if (name.includes("facial") || name.includes("skin") || name.includes("detan")) return "Skin Care";
+    return "Premium Services";
+  };
+
   const filteredServices = services.filter(srv => {
     const term = (searchTerm || "").toLowerCase();
     const matchSearch = (srv.name || "").toLowerCase().includes(term) || 
                         (srv.description || "").toLowerCase().includes(term);
-    const matchCategory = category === "ALL" || (srv.category || "") === category;
+    const srvCat = getCategory(srv);
+    const matchCategory = category === "ALL" || srvCat === category;
     return matchSearch && matchCategory;
   });
 
-  const categories = ["ALL", ...new Set(services.map(s => s.category).filter(Boolean))];
+  const categories = ["ALL", ...new Set(services.map(s => getCategory(s)))];
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
@@ -97,7 +109,7 @@ const Services = () => {
                <div key={service.id || idx} className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 flex flex-col group">
                   <div className="flex justify-between items-start mb-6">
                      <span className="inline-block py-1.5 px-3 rounded-full bg-primary-50 text-primary-700 border border-primary-100 text-xs font-bold tracking-wide">
-                        {service.category || 'SERVICE'}
+                        {getCategory(service)}
                      </span>
                      <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">
                         <Clock className="w-4 h-4 text-gray-400" />
