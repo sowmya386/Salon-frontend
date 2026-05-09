@@ -39,11 +39,18 @@ const MyInvoices = () => {
         Invoice History
       </h2>
       <div className="space-y-4">
-         {invoices.map(inv => (
+         {[...invoices].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(inv => (
             <div key={inv.invoiceId} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
                <div>
                   <h4 className="font-bold text-gray-900">Order #{inv.invoiceId}</h4>
                   <div className="text-sm text-gray-500 mt-1">{new Date(inv.createdAt).toLocaleDateString()}</div>
+                  {inv.items && inv.items.length > 0 && (
+                    <div className="mt-2 text-xs text-gray-600 font-medium">
+                      {inv.items.map((item, idx) => (
+                        <div key={idx}>&bull; {item.quantity}x {item.itemName} (₹{item.amount})</div>
+                      ))}
+                    </div>
+                  )}
                </div>
                <div className="text-right flex flex-col items-end gap-1">
                   <div className="font-extrabold text-gray-900 text-lg mb-1">₹{inv.totalAmount}</div>

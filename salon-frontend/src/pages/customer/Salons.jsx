@@ -37,15 +37,50 @@ const Salons = () => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-in fade-in slide-in-from-bottom-6 duration-500 delay-100">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search by salon name or city..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm transition-all"
-          />
+        <div className="relative flex-1 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search by salon name or city..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm transition-all"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (navigator.geolocation) {
+                setSearchTerm("Loading...");
+                navigator.geolocation.getCurrentPosition(
+                  async (position) => {
+                    try {
+                      const { latitude, longitude } = position.coords;
+                      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                      const data = await res.json();
+                      const city = data.address.city || data.address.town || data.address.village || "";
+                      setSearchTerm(city);
+                    } catch (e) {
+                      setSearchTerm("");
+                      alert("Could not determine location.");
+                    }
+                  },
+                  () => {
+                    setSearchTerm("");
+                    alert("Location access denied.");
+                  }
+                );
+              } else {
+                alert("Geolocation is not supported by your browser.");
+              }
+            }}
+            className="px-4 py-3.5 bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200 rounded-2xl font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
+            title="Find salons near me"
+          >
+            <MapPin className="w-5 h-5" />
+            <span className="hidden sm:inline">Near Me</span>
+          </button>
         </div>
         <select
           value={categoryFilter}

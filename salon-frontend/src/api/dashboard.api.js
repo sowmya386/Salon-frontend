@@ -1,7 +1,7 @@
 import api from "./axios";
 
-export const getDashboardSummary = () => {
-  return api.get("/admin/dashboard/summary");
+export const getDashboardSummary = (filter = "week") => {
+  return api.get("/admin/dashboard/summary", { params: { filter } });
 };
 
 export const getAdminBookings = (params) => {

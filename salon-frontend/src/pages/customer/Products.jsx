@@ -11,12 +11,20 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   // Cart & Checkout State
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem("salon_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(0); // 0=cart, 1=address, 2=payment, 3=success
   
   const [checkoutData, setCheckoutData] = useState({
     address: "",
+    pincode: "",
     paymentMethod: "PhonePe"
   });
   const [processing, setProcessing] = useState(false);
@@ -30,6 +38,7 @@ const Products = () => {
       
       const payload = {
         address: checkoutData.address,
+        pincode: checkoutData.pincode,
         paymentMethod: checkoutData.paymentMethod,
         items: cart.map(item => ({
           productId: item.id,
@@ -75,6 +84,10 @@ const Products = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("salon_cart", JSON.stringify(cart));
+  }, [cart]);
 
   const filteredProducts = products.filter(p => {
     const term = (searchTerm || "").toLowerCase();
@@ -247,6 +260,17 @@ const Products = () => {
                       onChange={e => setCheckoutData({...checkoutData, address: e.target.value})}
                       className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 shadow-sm outline-none"
                       rows={4}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Pincode</label>
+                    <input 
+                      required
+                      type="text"
+                      placeholder="123456"
+                      value={checkoutData.pincode}
+                      onChange={e => setCheckoutData({...checkoutData, pincode: e.target.value})}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 shadow-sm outline-none"
                     />
                   </div>
                 </div>

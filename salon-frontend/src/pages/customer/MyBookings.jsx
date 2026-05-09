@@ -42,9 +42,18 @@ const MyBookings = () => {
          {[...bookings].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)).map(b => (
             <div key={b.bookingId || b.id} className="p-5 rounded-2xl bg-gray-50 border border-gray-100 flex justify-between items-center hover:bg-white hover:shadow-md transition-all group">
                <div>
-                  <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{b.serviceName || "Service Appointment"} <span className="text-sm font-normal text-gray-500 ml-2">@ {b.salonName || "Salon"}</span></h4>
-                  <div className="flex items-center gap-4 text-sm tracking-wide mt-1">
-                     <span className="text-gray-500 flex items-center gap-1.5"><Clock className="w-4 h-4"/> {new Date(b.appointmentTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
+                     {b.serviceNames ? b.serviceNames.join(", ") : (b.serviceName || "Service Appointment")} 
+                     <span className="text-sm font-normal text-gray-500 ml-2">@ {b.salonName || "Salon"}</span>
+                  </h4>
+                  <div className="flex flex-col gap-1 mt-2">
+                     <span className="text-gray-500 flex items-center gap-1.5 text-sm tracking-wide"><Clock className="w-4 h-4"/> {new Date(b.appointmentTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                     {b.address && (
+                       <span className="text-gray-500 flex items-start gap-1.5 text-sm bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                         <span className="font-bold text-blue-700 shrink-0">Home Service:</span> 
+                         <span className="text-gray-700">{b.address}</span>
+                       </span>
+                     )}
                   </div>
                </div>
                <div>
@@ -52,10 +61,11 @@ const MyBookings = () => {
                      <div className="flex items-center gap-3">
                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-blue-200 shadow-sm">Confirmed</span>
                        <button onClick={async () => {
-                         if(!window.confirm("Are you sure you want to cancel this booking?")) return;
+                         const reason = window.prompt("Are you sure you want to cancel this booking? Please provide a reason (optional):");
+                         if(reason === null) return;
                          try {
-                            await api.put(`/customers/bookings/${b.bookingId || b.id}/cancel`);
-                            setBookings(bookings.map(bk => (bk.bookingId || bk.id) === (b.bookingId || b.id) ? {...bk, status: 'CANCELLED'} : bk));
+                            await api.put(`/customers/bookings/${b.bookingId || b.id}/cancel`, null, { params: { reason } });
+                            setBookings(bookings.map(bk => (bk.bookingId || bk.id) === (b.bookingId || b.id) ? {...bk, status: 'CANCELLED', cancellationMessage: reason || "Cancelled by Customer"} : bk));
                          } catch (e) { alert("Failed to cancel."); }
                        }} className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-full border border-red-200 transition-colors">Cancel</button>
                      </div>

@@ -11,7 +11,7 @@ const Profile = () => {
 
   // Edit Profile Modal States
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ fullName: "", phone: "", profileImageUrl: "" });
+  const [editForm, setEditForm] = useState({ fullName: "", phone: "", homeAddress: "", pincode: "", profileImageUrl: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -34,6 +34,8 @@ const Profile = () => {
       setEditForm({ 
         fullName: profileRes.data.fullName || "", 
         phone: profileRes.data.phone || "",
+        homeAddress: profileRes.data.homeAddress || "",
+        pincode: profileRes.data.pincode || "",
         profileImageUrl: profileRes.data.profileImageUrl || "" 
       });
 
@@ -247,6 +249,27 @@ const Profile = () => {
                   required
                   className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 text-gray-900 font-medium transition-all shadow-sm"
                   placeholder="+91 9999999999"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">Home Address</label>
+                <textarea 
+                  value={editForm.homeAddress}
+                  onChange={e => setEditForm({...editForm, homeAddress: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 text-gray-900 font-medium transition-all shadow-sm resize-none h-20"
+                  placeholder="123 Main St, Apt 4B"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">Pincode</label>
+                <input 
+                  type="text" 
+                  value={editForm.pincode}
+                  onChange={e => setEditForm({...editForm, pincode: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 text-gray-900 font-medium transition-all shadow-sm"
+                  placeholder="123456"
                 />
               </div>
 

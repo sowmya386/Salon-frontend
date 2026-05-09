@@ -83,34 +83,35 @@ const AdminDashboard = () => {
   const [inactiveCustomers, setInactiveCustomers] = useState([]);
   const [productSales, setProductSales] = useState([]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [chartFilter, setChartFilter] = useState("week");
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [summaryRes, bookingsRes, topCustRes, inactiveRes, prodSalesRes] = await Promise.all([
+        getDashboardSummary(chartFilter),
+        getAdminBookings({ size: 5, sort: 'appointmentTime,desc' }),
+        getTopCustomers(),
+        getInactiveCustomers(30, { size: 5 }),
+        getProductSales()
+      ]);
+      
+      setSummaryData(summaryRes.data);
+      setAppointments(bookingsRes.data?.content || bookingsRes.data || []);
+      setTopCustomers(topCustRes.data || []);
+      setInactiveCustomers(inactiveRes.data?.content || []);
+      setProductSales(prodSalesRes.data || []);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Failed to load dashboard data. Assuming mock data for now.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const [summaryRes, bookingsRes, topCustRes, inactiveRes, prodSalesRes] = await Promise.all([
-          getDashboardSummary(),
-          getAdminBookings({ size: 5, sort: 'appointmentTime,desc' }),
-          getTopCustomers(),
-          getInactiveCustomers(30, { size: 5 }),
-          getProductSales()
-        ]);
-        
-        setSummaryData(summaryRes.data);
-        setAppointments(bookingsRes.data?.content || bookingsRes.data || []);
-        setTopCustomers(topCustRes.data || []);
-        setInactiveCustomers(inactiveRes.data?.content || []);
-        setProductSales(prodSalesRes.data || []);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data. Assuming mock data for now.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
-  }, []);
+  }, [chartFilter]);
 
   // Fallbacks for UI if API changes or fails
   const data = summaryData || {};
@@ -222,9 +223,15 @@ const AdminDashboard = () => {
               <h2 className="text-xl font-extrabold text-gray-900">Revenue Analytics</h2>
               <p className="text-sm font-medium text-gray-500 mt-1">Weekly earning trajectory</p>
             </div>
-            <select className="text-sm font-bold border-gray-200 rounded-xl text-gray-700 bg-white px-4 py-2 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 outline-none shadow-sm cursor-pointer transition-colors">
-              <option>This Week</option>
-              <option>Last Week</option>
+            <select 
+              value={chartFilter}
+              onChange={(e) => setChartFilter(e.target.value)}
+              className="text-sm font-bold border-gray-200 rounded-xl text-gray-700 bg-white px-4 py-2 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 outline-none shadow-sm cursor-pointer transition-colors"
+            >
+              <option value="week">Past Week</option>
+              <option value="month">Past Month</option>
+              <option value="year">Past Year</option>
+              <option value="all">All Time</option>
             </select>
           </div>
           <div className="h-80 w-full">
@@ -282,7 +289,7 @@ const AdminDashboard = () => {
             ) : appointments.map((apt, idx) => {
               // Extract fields from BookingResponse payload 
               const customerName = apt.customerName || apt.customer?.name || "Unknown Customer";
-              const serviceName = apt.serviceName || apt.service?.name || "Service";
+              const serviceName = apt.serviceNames ? apt.serviceNames.join(", ") : (apt.serviceName || apt.service?.name || "Service");
               const status = apt.status || "Pending";
               const displayStatus = status === "BOOKED" ? "CONFIRMED" : status;
               // Attempt to format localDateTime or time string

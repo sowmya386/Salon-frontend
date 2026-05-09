@@ -63,6 +63,10 @@ const AddProductModal = ({ isOpen, onClose, onRefresh }) => {
             </div>
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="Product details..." rows={2} />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
             <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="https://..." />
           </div>
@@ -151,6 +155,10 @@ const EditProductModal = ({ isOpen, onClose, onRefresh, product }) => {
             </div>
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="Product details..." rows={2} />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
             <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" placeholder="https://..." />
           </div>
@@ -172,6 +180,7 @@ const ProductsList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("ALL");
 
   const fetchProducts = async () => {
     try {
@@ -218,10 +227,9 @@ const ProductsList = () => {
 
   const filteredProducts = products.filter(product => {
     const term = searchTerm.toLowerCase();
-    return (
-      product.name?.toLowerCase().includes(term) ||
-      product.description?.toLowerCase().includes(term)
-    );
+    const matchesSearch = (product.name?.toLowerCase() || "").includes(term) || (product.description?.toLowerCase() || "").includes(term);
+    const matchesFilter = filterType === "ALL" || (filterType === "LOW_STOCK" && product.stock <= 10);
+    return matchesSearch && matchesFilter;
   });
 
   return (
@@ -237,15 +245,25 @@ const ProductsList = () => {
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center relative animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-        <Search className="w-5 h-5 absolute left-6 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Search products by name or description..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder-gray-400"
-        />
+      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row items-center gap-4 relative animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+        <div className="relative w-full sm:w-2/3">
+          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Search products by name or description..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 hover:bg-white focus:bg-white transition-all shadow-sm"
+          />
+        </div>
+        <select 
+          value={filterType} 
+          onChange={(e) => setFilterType(e.target.value)}
+          className="w-full sm:w-1/3 py-2 px-4 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 hover:bg-white transition-all cursor-pointer shadow-sm"
+        >
+          <option value="ALL">All Products</option>
+          <option value="LOW_STOCK">Low Stock (≤ 10)</option>
+        </select>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-500 delay-200">

@@ -13,7 +13,7 @@ const BookAppointment = () => {
   const [loadingServices, setLoadingServices] = useState(true);
   
   const [formData, setFormData] = useState({
-    serviceId: preSelectedServiceId || "",
+    serviceIds: preSelectedServiceId ? [Number(preSelectedServiceId)] : [],
     bookingDate: "",
     bookingTime: "10:00",
     paymentMethod: ""
@@ -45,10 +45,10 @@ const BookAppointment = () => {
       .finally(() => setLoadingServices(false));
   }, []);
 
-  const selectedServiceDetails = services.find(s => s.id.toString() === formData.serviceId.toString());
+  const selectedServiceDetails = services.filter(s => formData.serviceIds.includes(Number(s.id)));
   const pointsToRedeem = redeemPoints ? loyaltyPoints : 0;
   const discount = Math.floor(pointsToRedeem / 60);
-  const originalPrice = selectedServiceDetails ? selectedServiceDetails.price : 0;
+  const originalPrice = selectedServiceDetails.reduce((sum, s) => sum + s.price, 0);
   const finalPrice = Math.max(0, originalPrice - discount);
 
   const handleSubmit = async (e) => {
@@ -58,9 +58,15 @@ const BookAppointment = () => {
 
     try {
       const appointmentTime = `${formData.bookingDate}T${formData.bookingTime}:00`;
+      const selectedDateTime = new Date(appointmentTime);
+      if (selectedDateTime < new Date()) {
+        setError("You cannot book an appointment in the past. Please select a valid future time.");
+        setSubmitting(false);
+        return;
+      }
 
       const payload = {
-        serviceId: Number(formData.serviceId),
+        serviceIds: formData.serviceIds.map(Number),
         appointmentTime,
         paymentMethod: formData.paymentMethod,
         address: formData.isHomeService ? formData.homeAddress : null,
@@ -118,23 +124,35 @@ const BookAppointment = () => {
 
           {/* Service Selection */}
           <div className="space-y-4">
-            <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">1. Select Service</label>
+            <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">1. Select Services</label>
             {loadingServices ? (
               <div className="h-14 flex items-center px-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-400"><Loader2 className="w-5 h-5 animate-spin mr-3"/> Loading services...</div>
             ) : (
-              <select 
-                required
-                value={formData.serviceId}
-                onChange={(e) => setFormData({...formData, serviceId: e.target.value})}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all cursor-pointer shadow-sm appearance-none"
-              >
-                <option value="" disabled>Choose a treatment...</option>
-                {services.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} (₹{s.price} - {s.durationInMinutes} mins)
-                  </option>
-                ))}
-              </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-xl bg-gray-50">
+                {services.map(s => {
+                  const isSelected = formData.serviceIds.includes(s.id);
+                  return (
+                    <label key={s.id} className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-all ${isSelected ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500' : 'border-gray-200 bg-white hover:border-primary-300'}`}>
+                      <input 
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({...formData, serviceIds: [...formData.serviceIds, s.id]});
+                          } else {
+                            setFormData({...formData, serviceIds: formData.serviceIds.filter(id => id !== s.id)});
+                          }
+                        }}
+                        className="mt-1 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                      />
+                      <div>
+                        <div className={`font-bold text-sm ${isSelected ? 'text-primary-700' : 'text-gray-900'}`}>{s.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">₹{s.price} &bull; {s.durationInMinutes} mins</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             )}
           </div>
 
@@ -275,7 +293,7 @@ const BookAppointment = () => {
              </button>
              <button 
                type="submit" 
-               disabled={submitting || !formData.serviceId || !formData.bookingDate || !formData.paymentMethod || (formData.isHomeService && !formData.homeAddress)}
+               disabled={submitting || formData.serviceIds.length === 0 || !formData.bookingDate || !formData.paymentMethod || (formData.isHomeService && !formData.homeAddress)}
                className="w-full sm:w-2/3 bg-gray-900 text-white rounded-xl py-4 font-bold text-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 transition-colors shadow-xl shadow-gray-900/20 flex items-center justify-center gap-2"
              >
                {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Payment & Book"}

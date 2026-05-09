@@ -139,7 +139,7 @@ const BookingsList = () => {
               ) : (
                 [...filteredBookings].sort((a, b) => new Date(b.appointmentTime) - new Date(a.appointmentTime)).map((booking, idx) => {
                   const custName = booking.customerName || "Walk-in";
-                  const srvName = booking.serviceName || "Service";
+                  const srvName = booking.serviceNames ? booking.serviceNames.join(", ") : (booking.serviceName || "Service");
                   const time = new Date(booking.appointmentTime || new Date()).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
                   return (
